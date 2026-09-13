@@ -75,10 +75,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('ASTRONOMY & COSMOS'), findsOneWidget);
-      expect(find.text('[+] Read Scientific Breakdown'), findsWidgets);
+      expect(find.text('Read Scientific Breakdown'), findsWidgets);
 
       // Tap accordion trigger to expand scientific breakdown
-      await tester.tap(find.text('[+] Read Scientific Breakdown').first);
+      await tester.tap(find.text('Read Scientific Breakdown').first);
       await tester.pumpAndSettle();
 
       expect(find.text('Collapse Scientific Breakdown'), findsOneWidget);
@@ -125,10 +125,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1. Trigger Command Palette from TopBar
-      expect(find.text('Search topics...'), findsOneWidget);
-      expect(find.text('⌘K'), findsOneWidget);
+      expect(find.text('Search topics…'), findsOneWidget);
+      expect(find.text('⌘\u00A0K'), findsOneWidget);
 
-      await tester.tap(find.text('Search topics...'));
+      await tester.tap(find.text('Search topics…'));
       await tester.pumpAndSettle();
 
       // 2. Initial state: Serendipity and Categories
@@ -153,7 +153,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Re-open palette
-      await tester.tap(find.text('Search topics...'));
+      await tester.tap(find.text('Search topics…'));
       await tester.pumpAndSettle();
 
       // 4. Test live search with debounce
@@ -176,7 +176,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Re-open palette
-      await tester.tap(find.text('Search topics...'));
+      await tester.tap(find.text('Search topics…'));
       await tester.pumpAndSettle();
 
       // 5. Test Category Feed navigation
@@ -214,7 +214,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1. Open The Vault via calendar button in top bar
-      final vaultButton = find.byTooltip('The Vault');
+      final vaultButton = find.byTooltip('The Vault, view archives');
       expect(vaultButton, findsOneWidget);
 
       await tester.tap(vaultButton);
