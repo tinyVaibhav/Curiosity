@@ -4,6 +4,7 @@ import '../core/state/feed_provider.dart';
 import '../core/theme/geist_theme.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/command_palette_modal.dart';
+import '../widgets/settings_modal.dart';
 import '../widgets/top_bar.dart';
 import 'articles_screen.dart';
 import 'cosmos_screen.dart';
@@ -31,10 +32,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 
+  void _onSettingsPressed(BuildContext context) {
+    SettingsModal.show(context);
+  }
+
   Widget _buildArchiveBanner(BuildContext context, FeedProvider feedProvider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bannerBg = isDark ? const Color(0xFFEDEDED) : const Color(0xFF111111);
-    final bannerTextColor = isDark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+    final bannerBg = isDark ? const Color(0xFF2C3136) : const Color(0xFFEDE8E1);
+    final bannerTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
+    final buttonBg = isDark ? GeistColors.accent : GeistColors.accentLight;
+    final buttonTextColor = isDark ? const Color(0xFF1A1D20) : Colors.white;
+    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
 
     return Container(
       constraints: const BoxConstraints(minHeight: 44.0),
@@ -46,7 +54,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         color: bannerBg,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? const Color(0xFFCCCCCC) : const Color(0xFF333333),
+            color: borderColor,
             width: 1.0,
           ),
         ),
@@ -78,22 +86,22 @@ class _MainShellScreenState extends State<MainShellScreen> {
               onTap: () {
                 feedProvider.returnToToday();
               },
-              borderRadius: BorderRadius.circular(4.0),
+              borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 44.0, minWidth: 48.0),
+                constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
                 child: Container(
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                   decoration: BoxDecoration(
-                    color: bannerTextColor,
-                    borderRadius: BorderRadius.circular(4.0),
+                    color: buttonBg,
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
                   ),
                   child: Text(
                     'Return to Today',
                     style: TextStyle(
                       fontSize: 12.0,
                       fontWeight: FontWeight.w700,
-                      color: bannerBg,
+                      color: buttonTextColor,
                     ),
                   ),
                 ),
@@ -113,6 +121,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       appBar: GeistTopBar(
         onSearchTap: () => _onSearchPressed(context),
         onVaultTap: () => _onVaultPressed(context),
+        onSettingsTap: () => _onSettingsPressed(context),
       ),
       body: Column(
         children: [

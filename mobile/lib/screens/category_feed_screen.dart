@@ -105,11 +105,11 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
   Widget build(BuildContext context) {
     final feedProvider = context.watch<FeedProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? GeistColors.darkBackground : GeistColors.lightBackground;
-    final surfaceColor = isDark ? GeistColors.darkSurface : GeistColors.lightSurface;
-    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
-    final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
+    final backgroundColor = GeistColors.background(isDark);
+    final surfaceColor = GeistColors.cardSurface(isDark);
+    final borderColor = GeistColors.border(isDark);
+    final primaryTextColor = GeistColors.primaryText(isDark);
+    final secondaryTextColor = GeistColors.secondaryText(isDark);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -131,7 +131,7 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
                   label: 'Back to Today',
                   child: InkWell(
                     onTap: () => Navigator.of(context).pop(),
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
                       child: Padding(
@@ -169,10 +169,10 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
                 Semantics(
                   header: true,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                     decoration: BoxDecoration(
                       color: surfaceColor,
-                      borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                      borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                       border: Border.all(color: borderColor, width: 1.0),
                     ),
                     child: Text(
@@ -215,6 +215,12 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
                       const SizedBox(height: GeistSpacing.md),
                       OutlinedButton(
                         onPressed: _loadInitialItems,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(100.0, 48.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+                          ),
+                        ),
                         child: const Text('Try Again'),
                       ),
                     ],
@@ -242,7 +248,7 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
                                 backgroundColor: surfaceColor,
                                 side: BorderSide(color: borderColor, width: 1.0),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                                  borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                                 ),
                               ),
                               child: _isLoadingMore

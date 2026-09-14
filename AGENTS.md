@@ -69,3 +69,10 @@ When creating or modifying frontend UI code in this project, you MUST adhere to 
 - Large lists (>50 items): virtualize (`virtua`, `content-visibility: auto`)
 - No layout reads in render (`getBoundingClientRect`, `offsetHeight`, `offsetWidth`, `scrollTop`)
 - Batch DOM reads/writes; avoid interleaving
+
+# Version Control & Git Policy
+- **NEVER** run `git commit` or `git push` automatically.
+- Only stage, commit, or push changes when the user explicitly requests you to do so in the chat.
+- Always ask for or wait for explicit user confirmation before committing or pushing changes to remote repositories.
+
+

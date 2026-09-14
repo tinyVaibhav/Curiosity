@@ -32,6 +32,19 @@ class InMemoryTTLCache:
     async def close(self) -> None:
         self._store.clear()
 
+def normalize_redis_url(raw_url: str) -> str:
+    """
+    Normalizes a Redis connection string (especially from cloud providers like Upstash Redis):
+    - Trims whitespace.
+    - Automatically upgrades redis:// to rediss:// if targeting Upstash (*.upstash.io)
+      since Upstash mandates TLS over port 6379.
+    """
+    url = raw_url.strip()
+    if "upstash.io" in url and url.startswith("redis://"):
+        url = "rediss://" + url[len("redis://"):]
+    return url
+
+
 class CacheManager:
     def __init__(self):
         self.redis_client: Optional[aioredis.Redis] = None
@@ -39,17 +52,21 @@ class CacheManager:
         self.is_using_memory: bool = False
 
     async def initialize(self) -> None:
-        """Connects to Redis or falls back to in-memory cache if Redis is unavailable."""
+        """Connects to Redis (Upstash / Cloud / Local) or falls back to in-memory cache if unavailable."""
         try:
+            normalized_url = normalize_redis_url(settings.REDIS_URL)
             client = aioredis.from_url(
-                settings.REDIS_URL,
+                normalized_url,
                 decode_responses=True,
-                socket_connect_timeout=1.5
+                socket_connect_timeout=5.0,
+                socket_timeout=5.0,
+                retry_on_timeout=True,
+                health_check_interval=30,
             )
             await client.ping()
             self.redis_client = client
             self.is_using_memory = False
-            logger.info("Connected successfully to Redis.")
+            logger.info("Connected successfully to Redis (Upstash / Cloud).")
         except Exception as e:
             if settings.AUTO_FALLBACK_CACHE:
                 logger.warning(

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../core/models/feed_models.dart';
@@ -132,7 +131,7 @@ class _FactCardState extends State<FactCard> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE8E8E8),
+                    color: isDark ? const Color(0xFF2C3136) : const Color(0xFFEDE8E1),
                     borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
                   ),
                   child: Text(
@@ -163,14 +162,14 @@ class _FactCardState extends State<FactCard> {
             // Fact Text (Editorial Serif / Quote Treatment)
             Text(
               '“${widget.fact.text}”',
-              style: GoogleFonts.newsreader(
-                fontSize: 21.0,
-                fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic,
-                color: primaryTextColor,
-                height: 1.45,
-                letterSpacing: -0.2,
-              ),
+              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    fontSize: 21.0,
+                    fontWeight: FontWeight.w500,
+                    fontStyle: FontStyle.italic,
+                    color: primaryTextColor,
+                    height: 1.45,
+                    letterSpacing: -0.2,
+                  ),
             ),
             const SizedBox(height: GeistSpacing.xl),
 
@@ -184,29 +183,47 @@ class _FactCardState extends State<FactCard> {
                   label: _isBookmarked ? 'Saved to bookmarks' : 'Save bookmark',
                   child: InkWell(
                     onTap: () => _toggleBookmark(context),
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                              size: 17.0,
-                              color: _isBookmarked ? GeistColors.success : secondaryTextColor,
-                            ),
-                            const SizedBox(width: 6.0),
-                            Text(
-                              _isBookmarked ? 'Saved' : 'Bookmark',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: _isBookmarked ? GeistColors.success : secondaryTextColor,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: _isBookmarked
+                              ? GeistColors.bookmarkActiveBg(isDark)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                          border: Border.all(
+                            color: _isBookmarked
+                                ? (isDark ? GeistColors.streak : GeistColors.streakLight)
+                                : borderColor,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: ExcludeSemantics(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                size: 16.0,
+                                color: _isBookmarked
+                                    ? (isDark ? GeistColors.streak : GeistColors.streakLight)
+                                    : secondaryTextColor,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6.0),
+                              Text(
+                                _isBookmarked ? 'Saved' : 'Bookmark',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w700,
+                                  color: _isBookmarked
+                                      ? (isDark ? GeistColors.streak : GeistColors.streakLight)
+                                      : secondaryTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -220,29 +237,36 @@ class _FactCardState extends State<FactCard> {
                   label: 'Share fact',
                   child: InkWell(
                     onTap: () => _handleShare(context),
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.arrow_outward_rounded,
-                              size: 16.0,
-                              color: secondaryTextColor,
-                            ),
-                            const SizedBox(width: 6.0),
-                            Text(
-                              'Share',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                          border: Border.all(color: borderColor, width: 1.0),
+                        ),
+                        child: ExcludeSemantics(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_outward_rounded,
+                                size: 15.0,
                                 color: secondaryTextColor,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6.0),
+                              Text(
+                                'Share',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w700,
+                                  color: secondaryTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

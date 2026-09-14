@@ -9,6 +9,7 @@ import '../screens/category_feed_screen.dart';
 import '../services/discovery_service.dart';
 import 'article_card.dart';
 import 'fact_reader_modal.dart';
+import 'settings_modal.dart';
 
 class CommandPaletteModal extends StatefulWidget {
   const CommandPaletteModal({super.key});
@@ -158,10 +159,12 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? GeistColors.darkSurface : GeistColors.lightSurface;
-    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
-    final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
+    final modalBg = GeistColors.modalBackground(isDark);
+    final surfaceColor = GeistColors.cardSurface(isDark);
+    final borderColor = GeistColors.border(isDark);
+    final primaryTextColor = GeistColors.primaryText(isDark);
+    final secondaryTextColor = GeistColors.secondaryText(isDark);
+    final sageColor = GeistColors.sage(isDark);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -175,8 +178,8 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
             child: Container(
               constraints: const BoxConstraints(maxWidth: 580, maxHeight: 600),
               decoration: BoxDecoration(
-                color: surfaceColor,
-                borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+                color: modalBg,
+                borderRadius: BorderRadius.circular(GeistSpacing.radiusXl),
                 border: Border.all(color: borderColor, width: 1.0),
               ),
               clipBehavior: Clip.antiAlias,
@@ -232,25 +235,31 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                             },
                           ),
                         const SizedBox(width: GeistSpacing.xs),
-                        // Close / ESC pill
+                        // Close / ESC pill - 48x48 dp touch target
                         Semantics(
                           button: true,
                           label: 'Close search palette',
                           child: InkWell(
                             onTap: () => Navigator.of(context).pop(),
-                            borderRadius: BorderRadius.circular(4.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7.0, vertical: 3.0),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF222222) : const Color(0xFFE5E5E5),
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              child: Text(
-                                'ESC',
-                                style: TextStyle(
-                                  fontSize: 11.0,
-                                  fontWeight: FontWeight.w700,
-                                  color: secondaryTextColor,
+                            borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(minWidth: 48.0, minHeight: 48.0),
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: surfaceColor,
+                                    borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                                    border: Border.all(color: borderColor, width: 0.8),
+                                  ),
+                                  child: Text(
+                                    'ESC',
+                                    style: TextStyle(
+                                      fontSize: 11.0,
+                                      fontWeight: FontWeight.w700,
+                                      color: secondaryTextColor,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -263,9 +272,9 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                   // Hairline Loading Bar when searching
                   if (_isSearching)
                     LinearProgressIndicator(
-                      minHeight: 2.0,
-                      backgroundColor: surfaceColor,
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryTextColor),
+                      minHeight: 2.5,
+                      backgroundColor: modalBg,
+                      valueColor: AlwaysStoppedAnimation<Color>(sageColor),
                     ),
 
                   // --- Content Body (Animated Switcher between Initial and Search) ---
@@ -273,8 +282,8 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 200),
                       child: _currentQuery.isEmpty
-                          ? _buildInitialState(context, isDark, primaryTextColor, secondaryTextColor, borderColor, surfaceColor)
-                          : _buildSearchResultsState(context, isDark, primaryTextColor, secondaryTextColor, borderColor),
+                          ? _buildInitialState(context, isDark, primaryTextColor, secondaryTextColor, borderColor, surfaceColor, sageColor)
+                          : _buildSearchResultsState(context, isDark, primaryTextColor, secondaryTextColor, borderColor, sageColor),
                     ),
                   ),
                 ],
@@ -294,6 +303,7 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
     Color secondaryTextColor,
     Color borderColor,
     Color surfaceColor,
+    Color sageColor,
   ) {
     return SingleChildScrollView(
       key: const ValueKey('initial_state'),
@@ -323,10 +333,11 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                 child: OutlinedButton(
                   onPressed: _isLoadingSurpriseArticle ? null : _handleSurpriseArticle,
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF161616) : const Color(0xFFF9F9F9),
+                    backgroundColor: surfaceColor,
                     side: BorderSide(color: borderColor, width: 1.0),
+                    minimumSize: const Size.fromHeight(48.0),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                      borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: GeistSpacing.md, horizontal: GeistSpacing.xs),
                   ),
@@ -367,10 +378,11 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                 child: OutlinedButton(
                   onPressed: _isLoadingSurpriseFact ? null : _handleSurpriseFact,
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF161616) : const Color(0xFFF9F9F9),
+                    backgroundColor: surfaceColor,
                     side: BorderSide(color: borderColor, width: 1.0),
+                    minimumSize: const Size.fromHeight(48.0),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                      borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: GeistSpacing.md, horizontal: GeistSpacing.xs),
                   ),
@@ -431,15 +443,15 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
               final label = cat['label']!;
               return InkWell(
                 onTap: () => _onCategoryTapped(context, topic, label),
-                borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 48.0),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF161616) : const Color(0xFFF9F9F9),
-                      borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                      color: surfaceColor,
+                      borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                       border: Border.all(color: borderColor, width: 1.0),
                     ),
                     child: Row(
@@ -458,7 +470,7 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                           child: Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 11.0,
-                            color: secondaryTextColor,
+                            color: sageColor,
                           ),
                         ),
                       ],
@@ -467,6 +479,57 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                 ),
               );
             }).toList(),
+          ),
+          const SizedBox(height: GeistSpacing.lg),
+
+          // Section 3: Preferences & Settings
+          Semantics(
+            header: true,
+            child: Text(
+              'PREFERENCES & APPEARANCE',
+              style: TextStyle(
+                fontSize: 11.0,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.1,
+                color: secondaryTextColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: GeistSpacing.sm),
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              SettingsModal.show(context);
+            },
+            borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: surfaceColor,
+                  borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+                  border: Border.all(color: borderColor, width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.tune_rounded, size: 18.0, color: sageColor),
+                    const SizedBox(width: GeistSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Settings & Appearance Mode',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: primaryTextColor,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12.0, color: secondaryTextColor),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -480,6 +543,7 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
     Color primaryTextColor,
     Color secondaryTextColor,
     Color borderColor,
+    Color sageColor,
   ) {
     if (!_isSearching && _searchResults.isEmpty) {
       return Center(
@@ -527,27 +591,29 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
             child: Row(
               children: [
                 // Leading thumbnail or icon
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
-                  child: Container(
-                    width: 44.0,
-                    height: 44.0,
-                    color: isDark ? const Color(0xFF222222) : const Color(0xFFE5E5E5),
-                    child: (article.thumbnailUrl != null && article.thumbnailUrl!.isNotEmpty)
-                        ? Image.network(
-                            ImageUtils.resolveImageUrl(article.thumbnailUrl!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Icon(
+                ExcludeSemantics(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                    child: Container(
+                      width: 48.0,
+                      height: 48.0,
+                      color: isDark ? const Color(0xFF24282C) : const Color(0xFFF2EFE9),
+                      child: (article.thumbnailUrl != null && article.thumbnailUrl!.isNotEmpty)
+                          ? Image.network(
+                              ImageUtils.resolveImageUrl(article.thumbnailUrl!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Icon(
+                                Icons.article_outlined,
+                                size: 22.0,
+                                color: secondaryTextColor,
+                              ),
+                            )
+                          : Icon(
                               Icons.article_outlined,
                               size: 22.0,
                               color: secondaryTextColor,
                             ),
-                          )
-                        : Icon(
-                            Icons.article_outlined,
-                            size: 22.0,
-                            color: secondaryTextColor,
-                          ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: GeistSpacing.md),
@@ -583,10 +649,12 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                   ),
                 ),
                 const SizedBox(width: GeistSpacing.sm),
-                Icon(
-                  Icons.arrow_outward_rounded,
-                  size: 16.0,
-                  color: secondaryTextColor,
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.arrow_outward_rounded,
+                    size: 16.0,
+                    color: sageColor,
+                  ),
                 ),
               ],
             ),

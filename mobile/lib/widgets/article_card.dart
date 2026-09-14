@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/models/feed_models.dart';
@@ -48,23 +49,8 @@ class ArticleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. 16:9 Thumbnail with skeleton loader
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: article.thumbnailUrl != null && article.thumbnailUrl!.isNotEmpty
-                      ? Image.network(
-                          ImageUtils.resolveImageUrl(article.thumbnailUrl!),
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return _buildSkeleton(isDark);
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildPlaceholder(isDark, secondaryTextColor);
-                          },
-                        )
-                      : _buildPlaceholder(isDark, secondaryTextColor),
-                ),
+                // 1. Gallery Matting Thumbnail with Ambient Backdrop (Option 1)
+                _buildThumbnail(isDark, secondaryTextColor),
 
               // 2. Card Content
               Padding(
@@ -79,7 +65,7 @@ class ArticleCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE8E8E8),
+                            color: isDark ? const Color(0xFF2C3136) : const Color(0xFFEDE8E1),
                             borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
                           ),
                           child: Text(
@@ -140,7 +126,7 @@ class ArticleCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13.0,
                             fontWeight: FontWeight.w700,
-                            color: primaryTextColor,
+                            color: isDark ? GeistColors.accentTextDark : GeistColors.accentLight,
                             letterSpacing: -0.2,
                           ),
                         ),
@@ -157,9 +143,69 @@ class ArticleCard extends StatelessWidget {
   );
   }
 
+  Widget _buildThumbnail(bool isDark, Color secondaryTextColor) {
+    if (article.thumbnailUrl == null || article.thumbnailUrl!.trim().isEmpty) {
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: ExcludeSemantics(
+          child: _buildPlaceholder(isDark, secondaryTextColor),
+        ),
+      );
+    }
+
+    final imageUrl = ImageUtils.resolveImageUrl(article.thumbnailUrl!);
+    final canvasColor = isDark ? const Color(0xFF191C1F) : const Color(0xFFEDE8E1);
+    final scrimColor = isDark ? const Color(0x99191C1F) : const Color(0x99F5F0EB);
+
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: ExcludeSemantics(
+        child: Container(
+          color: canvasColor,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 1. Ambient blurred background glow from image palette
+              ClipRect(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0),
+                  child: Transform.scale(
+                    scale: 1.25,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+              ),
+
+              // 2. Soft tinted scrim for harmonious ambient contrast
+              Container(color: scrimColor),
+
+              // 3. Foreground uncropped image (100% visible, zero cropping)
+              Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return _buildSkeleton(isDark);
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildPlaceholder(isDark, secondaryTextColor);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSkeleton(bool isDark) {
     return Container(
-      color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE5E5E5),
+      color: isDark ? const Color(0xFF24282C) : const Color(0xFFF2EFE9),
       child: Center(
         child: SizedBox(
           width: 20.0,
@@ -208,8 +254,7 @@ class ArticleReaderModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? GeistColors.darkBackground : GeistColors.lightBackground;
-    final surfaceColor = isDark ? GeistColors.darkSurface : GeistColors.lightSurface;
+    final backgroundColor = isDark ? GeistColors.darkModalBackground : GeistColors.lightModalBackground;
     final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
     final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
     final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
@@ -237,7 +282,7 @@ class ArticleReaderModal extends StatelessWidget {
                 width: 36.0,
                 height: 4.0,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF333333) : const Color(0xFFCCCCCC),
+                  color: isDark ? const Color(0xFF33383F) : const Color(0xFFD6CFC7),
                   borderRadius: BorderRadius.circular(2.0),
                 ),
               ),
@@ -252,12 +297,33 @@ class ArticleReaderModal extends StatelessWidget {
                 if (article.thumbnailUrl != null && article.thumbnailUrl!.isNotEmpty) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: Image.network(
-                        ImageUtils.resolveImageUrl(article.thumbnailUrl!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                    child: Container(
+                      constraints: const BoxConstraints(maxHeight: 360.0),
+                      width: double.infinity,
+                      color: isDark ? const Color(0xFF191C1F) : const Color(0xFFEDE8E1),
+                      child: ExcludeSemantics(
+                        child: Image.network(
+                          ImageUtils.resolveImageUrl(article.thumbnailUrl!),
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return SizedBox(
+                              height: 180.0,
+                              child: Center(
+                                child: SizedBox(
+                                  width: 24.0,
+                                  height: 24.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                    color: secondaryTextColor,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                   ),
@@ -271,7 +337,7 @@ class ArticleReaderModal extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                       decoration: BoxDecoration(
-                        color: surfaceColor,
+                        color: isDark ? GeistColors.darkSurfaceElevated : GeistColors.lightSurfaceElevated,
                         borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
                         border: Border.all(color: borderColor, width: 1.0),
                       ),
@@ -294,14 +360,17 @@ class ArticleReaderModal extends StatelessWidget {
                 ),
                 const SizedBox(height: GeistSpacing.sm),
 
-                // Title
-                Text(
-                  displayTitle,
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 24.0,
-                        color: primaryTextColor,
-                        height: 1.2,
-                      ),
+                // Title with Semantics Header
+                Semantics(
+                  header: true,
+                  child: Text(
+                    displayTitle,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          fontSize: 24.0,
+                          color: primaryTextColor,
+                          height: 1.2,
+                        ),
+                  ),
                 ),
                 const SizedBox(height: GeistSpacing.md),
 
@@ -316,7 +385,7 @@ class ArticleReaderModal extends StatelessWidget {
                 ),
                 const SizedBox(height: GeistSpacing.xl),
 
-                // Action: Open in Browser
+                // Action: Open in Browser - 48dp Touch Target
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -332,12 +401,13 @@ class ArticleReaderModal extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryTextColor,
-                      foregroundColor: isDark ? Colors.black : Colors.white,
+                      backgroundColor: isDark ? GeistColors.accent : GeistColors.accentLight,
+                      foregroundColor: isDark ? const Color(0xFF1A1D20) : Colors.white,
+                      minimumSize: const Size.fromHeight(48.0),
                       padding: const EdgeInsets.symmetric(vertical: 14.0),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                        borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                       ),
                     ),
                   ),

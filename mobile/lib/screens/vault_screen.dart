@@ -67,10 +67,10 @@ class _VaultScreenState extends State<VaultScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? GeistColors.darkBackground : GeistColors.lightBackground;
-    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
-    final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
+    final backgroundColor = GeistColors.background(isDark);
+    final borderColor = GeistColors.border(isDark);
+    final primaryTextColor = GeistColors.primaryText(isDark);
+    final secondaryTextColor = GeistColors.secondaryText(isDark);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -92,7 +92,7 @@ class _VaultScreenState extends State<VaultScreen> {
                   label: 'Back, return to previous screen',
                   child: InkWell(
                     onTap: () => Navigator.of(context).pop(),
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
                       child: Padding(
@@ -125,23 +125,27 @@ class _VaultScreenState extends State<VaultScreen> {
                     ),
                   ),
                 ),
-                const Spacer(),
-                // Centered Screen Title
-                Semantics(
-                  header: true,
-                  child: Text(
-                    'The Vault (Past 30 Days)',
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.2,
-                      color: primaryTextColor,
+                // Centered Screen Title wrapped in Expanded to prevent overflow
+                Expanded(
+                  child: Center(
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        'The Vault (Past 30 Days)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.2,
+                              color: primaryTextColor,
+                            ),
+                      ),
                     ),
                   ),
                 ),
-                const Spacer(),
                 // Balance empty space for true center
-                const SizedBox(width: 60.0),
+                const SizedBox(width: 48.0),
               ],
             ),
           ),
@@ -172,6 +176,12 @@ class _VaultScreenState extends State<VaultScreen> {
                       const SizedBox(height: GeistSpacing.md),
                       OutlinedButton(
                         onPressed: _fetchHistory,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(88.0, 48.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+                          ),
+                        ),
                         child: const Text('Retry'),
                       ),
                     ],
@@ -197,7 +207,7 @@ class _VaultScreenState extends State<VaultScreen> {
                     )
                   : RefreshIndicator(
                       color: primaryTextColor,
-                      backgroundColor: isDark ? GeistColors.darkSurface : GeistColors.lightSurface,
+                      backgroundColor: GeistColors.cardSurface(isDark),
                       onRefresh: _fetchHistory,
                       child: ListView.separated(
                         padding: const EdgeInsets.all(GeistSpacing.md),

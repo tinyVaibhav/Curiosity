@@ -40,12 +40,7 @@ async def get_vault_history(
         if not hero_thumb:
             for cos in pack.cosmos_json:
                 if isinstance(cos, dict) and cos.get("url"):
-                    cos_url = cos["url"]
-                    if "apod.nasa.gov" in cos_url or "nasa.gov" in cos_url:
-                        from urllib.parse import quote
-                        hero_thumb = f"http://localhost:8000/api/v1/feed/proxy-image?url={quote(cos_url, safe='')}"
-                    else:
-                        hero_thumb = cos_url
+                    hero_thumb = cos["url"]
                     break
 
         # Extract article titles

@@ -17,6 +17,15 @@ class Settings(BaseSettings):
     NASA_API_KEY: str = "DEMO_KEY"
     HTTP_TIMEOUT_SECONDS: float = 10.0
 
+    # Cron & Automation Settings (Upstash QStash / Internal Scheduler)
+    CRON_SECRET: str = "curiosity_dev_cron_secret_change_in_production"
+    ENABLE_INTERNAL_SCHEDULER: bool = True
+    QSTASH_TOKEN: str | None = None
+    QSTASH_URL: str = "https://qstash.upstash.io"
+    PUBLIC_BASE_URL: str | None = None  # e.g. "https://my-curiosity-api.onrender.com"
+    QSTASH_CURRENT_SIGNING_KEY: str | None = None
+    QSTASH_NEXT_SIGNING_KEY: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 settings = Settings()

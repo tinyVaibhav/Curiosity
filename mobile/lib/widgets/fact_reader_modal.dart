@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/models/feed_models.dart';
 import '../core/theme/geist_theme.dart';
@@ -71,17 +70,18 @@ class _FactReaderModalState extends State<FactReaderModal> {
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: shareText));
       if (context.mounted) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
+            content: Text(
               'Fact copied to clipboard',
-              style: TextStyle(color: GeistColors.darkTextPrimary),
+              style: TextStyle(color: GeistColors.primaryText(isDark)),
             ),
-            backgroundColor: GeistColors.darkSurface,
+            backgroundColor: GeistColors.cardSurface(isDark),
             duration: const Duration(seconds: 2),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-              side: const BorderSide(color: GeistColors.darkBorder),
+              borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+              side: BorderSide(color: GeistColors.border(isDark)),
             ),
           ),
         );
@@ -92,11 +92,12 @@ class _FactReaderModalState extends State<FactReaderModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? GeistColors.darkBackground : GeistColors.lightBackground;
-    final surfaceColor = isDark ? GeistColors.darkSurface : GeistColors.lightSurface;
-    final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
-    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
+    final backgroundColor = GeistColors.modalBackground(isDark);
+    final surfaceColor = GeistColors.cardSurface(isDark);
+    final primaryTextColor = GeistColors.primaryText(isDark);
+    final secondaryTextColor = GeistColors.secondaryText(isDark);
+    final borderColor = GeistColors.border(isDark);
+    final streakColor = GeistColors.streakColor(isDark);
 
     return Container(
       constraints: BoxConstraints(
@@ -104,7 +105,7 @@ class _FactReaderModalState extends State<FactReaderModal> {
       ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(GeistSpacing.radiusLg)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(GeistSpacing.radiusXl)),
         border: Border(top: BorderSide(color: borderColor, width: 1.0)),
       ),
       clipBehavior: Clip.antiAlias,
@@ -121,7 +122,7 @@ class _FactReaderModalState extends State<FactReaderModal> {
                 width: 36.0,
                 height: 4.0,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF333333) : const Color(0xFFCCCCCC),
+                  color: GeistColors.dragHandle(isDark),
                   borderRadius: BorderRadius.circular(2.0),
                 ),
               ),
@@ -201,14 +202,14 @@ class _FactReaderModalState extends State<FactReaderModal> {
                         : Text(
                             key: ValueKey(_currentFact.text),
                             '“${_currentFact.text}”',
-                            style: GoogleFonts.newsreader(
-                              fontSize: 24.0,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.w400,
-                              color: primaryTextColor,
-                              height: 1.45,
-                              letterSpacing: -0.2,
-                            ),
+                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                  fontSize: 22.0,
+                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w400,
+                                  color: primaryTextColor,
+                                  height: 1.45,
+                                  letterSpacing: -0.2,
+                                ),
                           ),
                   ),
                 ),
@@ -229,7 +230,7 @@ class _FactReaderModalState extends State<FactReaderModal> {
                             _isBookmarked = !_isBookmarked;
                           });
                         },
-                        borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                        borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48.0),
                           child: Container(
@@ -237,32 +238,34 @@ class _FactReaderModalState extends State<FactReaderModal> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: _isBookmarked
-                                  ? (isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE6F4EA))
+                                  ? GeistColors.bookmarkActiveBg(isDark)
                                   : surfaceColor,
-                              borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                              borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                               border: Border.all(
-                                color: _isBookmarked ? GeistColors.success : borderColor,
+                                color: _isBookmarked ? streakColor : borderColor,
                                 width: 1.0,
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                  size: 15.0,
-                                  color: _isBookmarked ? GeistColors.success : secondaryTextColor,
-                                ),
-                                const SizedBox(width: GeistSpacing.xs),
-                                Text(
-                                  _isBookmarked ? 'Saved' : 'Bookmark',
-                                  style: TextStyle(
-                                    fontSize: 12.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: _isBookmarked ? GeistColors.success : primaryTextColor,
+                            child: ExcludeSemantics(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                    size: 16.0,
+                                    color: _isBookmarked ? streakColor : secondaryTextColor,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: GeistSpacing.xs),
+                                  Text(
+                                    _isBookmarked ? 'Saved' : 'Bookmark',
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w600,
+                                      color: _isBookmarked ? streakColor : primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -276,7 +279,7 @@ class _FactReaderModalState extends State<FactReaderModal> {
                       label: 'Share fact',
                       child: InkWell(
                         onTap: () => _handleShare(context),
-                        borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                        borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48.0),
                           child: Container(
@@ -284,27 +287,29 @@ class _FactReaderModalState extends State<FactReaderModal> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: surfaceColor,
-                              borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                              borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                               border: Border.all(color: borderColor, width: 1.0),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.share_outlined,
-                                  size: 15.0,
-                                  color: secondaryTextColor,
-                                ),
-                                const SizedBox(width: GeistSpacing.xs),
-                                Text(
-                                  'Share',
-                                  style: TextStyle(
-                                    fontSize: 12.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: primaryTextColor,
+                            child: ExcludeSemantics(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.share_outlined,
+                                    size: 15.0,
+                                    color: secondaryTextColor,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: GeistSpacing.xs),
+                                  Text(
+                                    'Share',
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w600,
+                                      color: primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -336,7 +341,7 @@ class _FactReaderModalState extends State<FactReaderModal> {
                       backgroundColor: surfaceColor,
                       side: BorderSide(color: borderColor, width: 1.0),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+                        borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
                       ),
                     ),
                   ),

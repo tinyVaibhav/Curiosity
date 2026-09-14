@@ -39,6 +39,8 @@ class FeedProvider extends ChangeNotifier {
 
   int get totalUnread => _isViewingArchive ? 0 : _unreadCounts.values.fold(0, (a, b) => a + b);
 
+  int get completedCount => _isViewingArchive ? 15 : (15 - totalUnread).clamp(0, 15);
+
   FeedProvider() {
     fetchDailyFeed();
   }

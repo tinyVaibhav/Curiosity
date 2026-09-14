@@ -89,7 +89,7 @@ class GeistBottomNav extends StatelessWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = currentIndex == index;
-    final primaryColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
+    final activeColor = isDark ? GeistColors.accentTextDark : GeistColors.accentLight;
     final secondaryColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
 
     final unreadLabel = badgeCount > 0 ? '$badgeCount unread items' : 'all caught up';
@@ -102,15 +102,22 @@ class GeistBottomNav extends StatelessWidget {
         child: InkResponse(
           containedInkWell: true,
           highlightShape: BoxShape.rectangle,
-          borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+          borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
           onTap: () {
             if (currentIndex != index) {
               HapticFeedback.lightImpact();
               onTabSelected(index);
             }
           },
-          child: Padding(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
             padding: const EdgeInsets.symmetric(vertical: 4.0),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? (isDark ? const Color(0x245B8A72) : const Color(0x1F3E6552))
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -122,8 +129,8 @@ class GeistBottomNav extends StatelessWidget {
                     children: [
                       Icon(
                         isSelected ? activeIcon : icon,
-                        size: 22.0,
-                        color: isSelected ? primaryColor : secondaryColor,
+                        size: 21.0,
+                        color: isSelected ? activeColor : secondaryColor,
                       ),
                       // Badge overlay
                       if (badgeCount > 0)
@@ -133,7 +140,7 @@ class GeistBottomNav extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF222222) : const Color(0xFFE0E0E0),
+                              color: isDark ? GeistColors.darkSurfaceElevated : GeistColors.lightSurfaceElevated,
                               borderRadius: BorderRadius.circular(8.0),
                               border: Border.all(
                                 color: isDark ? GeistColors.darkBorderActive : GeistColors.lightBorderActive,
@@ -147,6 +154,7 @@ class GeistBottomNav extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                                 color: isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary,
                                 height: 1.0,
+                                fontFeatures: const [FontFeature.tabularFigures()],
                               ),
                             ),
                           ),
@@ -177,9 +185,9 @@ class GeistBottomNav extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11.0,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                       letterSpacing: -0.2,
-                      color: isSelected ? primaryColor : secondaryColor,
+                      color: isSelected ? activeColor : secondaryColor,
                     ),
                   ),
                 ),

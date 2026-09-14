@@ -38,10 +38,10 @@ class VaultHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? GeistColors.darkSurface : GeistColors.lightSurface;
-    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
-    final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
+    final surfaceColor = GeistColors.cardSurface(isDark);
+    final borderColor = GeistColors.border(isDark);
+    final primaryTextColor = GeistColors.primaryText(isDark);
+    final secondaryTextColor = GeistColors.secondaryText(isDark);
 
     final formattedDate = _formatDate(item.packDate);
     final articlesPreview = item.articleTitles.isNotEmpty
@@ -51,7 +51,7 @@ class VaultHistoryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+        borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
         border: Border.all(color: borderColor, width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
@@ -67,11 +67,11 @@ class VaultHistoryCard extends StatelessWidget {
                 // Mini Leading Thumbnail (or Icon Fallback)
                 ExcludeSemantics(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
                     child: Container(
-                      width: 44.0,
-                      height: 44.0,
-                      color: isDark ? const Color(0xFF222222) : const Color(0xFFE5E5E5),
+                      width: 48.0,
+                      height: 48.0,
+                      color: isDark ? const Color(0xFF24282C) : const Color(0xFFF2EFE9),
                       child: (item.heroThumbnailUrl != null && item.heroThumbnailUrl!.isNotEmpty)
                           ? Image.network(
                               ImageUtils.resolveImageUrl(item.heroThumbnailUrl!),
@@ -103,12 +103,12 @@ class VaultHistoryCard extends StatelessWidget {
                           formattedDate,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: primaryTextColor,
-                            letterSpacing: -0.2,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontSize: 15.0,
+                                fontWeight: FontWeight.w600,
+                                color: primaryTextColor,
+                                letterSpacing: -0.2,
+                              ),
                         ),
                         const SizedBox(height: 3.0),
                         Text(

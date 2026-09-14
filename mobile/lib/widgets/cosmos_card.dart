@@ -78,7 +78,7 @@ class _CosmosCardState extends State<CosmosCard> {
                   },
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      color: isDark ? const Color(0xFF161616) : const Color(0xFFEEEEEE),
+                      color: isDark ? const Color(0xFF24282C) : const Color(0xFFF2EFE9),
                       child: Center(
                         child: Icon(
                           Icons.auto_awesome_outlined,
@@ -163,16 +163,19 @@ class _CosmosCardState extends State<CosmosCard> {
                         ],
                       ),
                       const SizedBox(height: GeistSpacing.xs),
-                      Text(
-                        widget.cosmos.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.3,
-                          height: 1.25,
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          widget.cosmos.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                letterSpacing: -0.3,
+                                height: 1.25,
+                              ),
                         ),
                       ),
                     ],
@@ -202,7 +205,7 @@ class _CosmosCardState extends State<CosmosCard> {
                         child: Icon(
                           _isExpanded ? Icons.remove_circle_outline_rounded : Icons.add_circle_outline_rounded,
                           size: 16.0,
-                          color: primaryTextColor,
+                          color: isDark ? GeistColors.accent : GeistColors.accentLight,
                         ),
                       ),
                       const SizedBox(width: GeistSpacing.sm),
@@ -247,7 +250,7 @@ class _CosmosCardState extends State<CosmosCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Divider(color: GeistColors.darkBorder, height: 1.0),
+                  Divider(color: borderColor, height: 1.0),
                   const SizedBox(height: GeistSpacing.sm),
                   Text(
                     widget.cosmos.explanation,

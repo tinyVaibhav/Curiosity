@@ -12,18 +12,8 @@ router = APIRouter(prefix="/api/v1/feed", tags=["Daily Feed"])
 from urllib.parse import quote
 
 
-def _proxy_url_if_needed(url: str) -> str:
-    if not url or "proxy-image" in url:
-        return url
-    if "apod.nasa.gov" in url or "nasa.gov" in url:
-        return f"http://localhost:8000/api/v1/feed/proxy-image?url={quote(url, safe='')}"
-    return url
-
-
 def _sanitize_pack_image_urls(pack: DailyPackSchema) -> DailyPackSchema:
-    for item in pack.cosmos:
-        if item.url:
-            item.url = _proxy_url_if_needed(item.url)
+    """Passes through clean canonical image URLs so frontend clients resolve platform-specific proxy endpoints dynamically."""
     return pack
 
 
