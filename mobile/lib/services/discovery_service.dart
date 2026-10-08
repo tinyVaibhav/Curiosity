@@ -1,22 +1,15 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../core/constants/api_config.dart';
 import '../core/models/feed_models.dart';
 
 class DiscoveryService {
   static final DiscoveryService instance = DiscoveryService._internal();
   DiscoveryService._internal();
 
-  /// Resolves the backend base URL depending on platform
-  String get _baseUrl {
-    if (kIsWeb) return 'http://localhost:8000';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-    } catch (_) {}
-    return 'http://localhost:8000';
-  }
+  /// Resolves the backend base URL
+  String get _baseUrl => ApiConfig.baseUrl;
 
   /// Searches Wikipedia via the backend heuristic search endpoint
   Future<List<ArticleItem>> search(String query) async {
@@ -26,7 +19,7 @@ class DiscoveryService {
     final url = Uri.parse('$_baseUrl/api/v1/discovery/search?q=${Uri.encodeQueryComponent(cleanQuery)}');
 
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 4));
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
         return list.map((e) => ArticleItem.fromJson(e as Map<String, dynamic>)).toList();
@@ -47,7 +40,7 @@ class DiscoveryService {
     final url = Uri.parse('$_baseUrl/api/v1/discovery/category?topic=$topic$excludeParam');
 
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 4));
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
         return list.map((e) => ArticleItem.fromJson(e as Map<String, dynamic>)).toList();
@@ -64,7 +57,7 @@ class DiscoveryService {
     final url = Uri.parse('$_baseUrl/api/v1/discovery/random-article');
 
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 4));
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return ArticleItem.fromJson(data);
@@ -90,7 +83,7 @@ class DiscoveryService {
     final url = Uri.parse('$_baseUrl/api/v1/discovery/random-fact');
 
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 4));
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         final item = FactItem.fromJson(data);

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../core/constants/api_config.dart';
 import '../core/models/feed_models.dart';
 
 class VaultService {
@@ -9,20 +8,14 @@ class VaultService {
   VaultService._internal();
 
   /// Resolves backend base URL
-  String get _baseUrl {
-    if (kIsWeb) return 'http://localhost:8000';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-    } catch (_) {}
-    return 'http://localhost:8000';
-  }
+  String get _baseUrl => ApiConfig.baseUrl;
 
   /// Fetches the past 30 days of archived packs
   Future<List<VaultHistoryItem>> fetchVaultHistory() async {
     final url = Uri.parse('$_baseUrl/api/v1/vault/history');
 
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 4));
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
         return list.map((e) => VaultHistoryItem.fromJson(e as Map<String, dynamic>)).toList();

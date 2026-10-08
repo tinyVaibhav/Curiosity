@@ -3,7 +3,7 @@ from datetime import date
 import logging
 from typing import Optional
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 # Configure console logging format
@@ -72,6 +72,25 @@ app.include_router(feed_router)
 app.include_router(discovery_router)
 app.include_router(vault_router)
 app.include_router(cron_router)
+
+
+@app.get("/")
+@app.head("/")
+async def root():
+    """Root landing endpoint for browser diagnostics and cloud platform health probes (Render/Railway)."""
+    return {
+        "status": "healthy",
+        "service": "Curiosity API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Suppresses 404 browser favicon noise with a clean 204 No Content."""
+    return Response(status_code=204)
 
 
 @app.get("/health")

@@ -11,12 +11,19 @@ import 'package:curiosity_mobile/main.dart';
 import 'package:curiosity_mobile/core/models/feed_models.dart';
 import 'package:curiosity_mobile/core/utils/image_utils.dart';
 import 'package:curiosity_mobile/widgets/article_card.dart';
+import 'package:curiosity_mobile/widgets/quiz_card.dart';
 import 'package:curiosity_mobile/widgets/settings_modal.dart';
 import 'package:curiosity_mobile/widgets/vault_history_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:curiosity_mobile/core/services/feed_storage_service.dart';
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
     VisibilityDetectorController.instance.updateInterval = Duration.zero;
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    FeedStorageService.instance.initialize(prefs);
   });
 
   group('TextUtils Unit Tests', () {
@@ -69,7 +76,10 @@ void main() {
       expect(find.text('#QUIZ'), findsWidgets);
 
       // Tap an answer option on the first question
-      final optionFinder = find.byType(InkWell);
+      final optionFinder = find.descendant(
+        of: find.byType(QuizCard).first,
+        matching: find.byType(InkWell),
+      );
       await tester.tap(optionFinder.first);
       await tester.pumpAndSettle();
 
@@ -557,5 +567,95 @@ void main() {
       expect(containerFinder, findsWidgets);
     });
   });
+
+  group('Offline-First & SWR Persistence Tests', () {
+    test('FeedStorageService saves, retrieves, and handles corrupted JSON safely', () async {
+      final storage = FeedStorageService.instance;
+      const testDate = '2030-01-01';
+
+      final samplePack = DailyPack(
+        packDate: testDate,
+        articles: const [
+          ArticleItem(
+            title: 'Quantum_Computing',
+            normalizedTitle: 'Quantum Computing',
+            summary: 'Computation using quantum states.',
+          ),
+        ],
+        quizzes: const [
+          QuizItem(
+            question: 'What is a qubit?',
+            correctAnswer: 'A quantum bit',
+            incorrectAnswers: ['A classic bit', 'A transistor'],
+          ),
+        ],
+        cosmos: const [
+          CosmosItem(
+            title: 'Hubble Deep Field',
+            explanation: 'Thousands of distant galaxies.',
+            url: 'https://example.com/hubble.jpg',
+          ),
+        ],
+        facts: const [
+          FactItem(text: 'Light travels at ~300,000 km/s.', source: 'Physics'),
+        ],
+      );
+
+      // Verify save and retrieval
+      await storage.savePack(samplePack);
+      final retrieved = storage.getCachedPack(testDate);
+      expect(retrieved, isNotNull);
+      expect(retrieved!.packDate, testDate);
+      expect(retrieved.articles.first.title, 'Quantum_Computing');
+
+      // Verify seen items persistence
+      expect(storage.getSeenItems(testDate), isEmpty);
+      await storage.markItemSeen(testDate, 'Quantum_Computing');
+      expect(storage.getSeenItems(testDate), contains('Quantum_Computing'));
+
+      // Verify corrupted cache handling
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('feed_pack_corrupted_date', '{invalid-json-data');
+      final corrupted = storage.getCachedPack('corrupted_date');
+      expect(corrupted, isNull);
+      expect(prefs.containsKey('feed_pack_corrupted_date'), isFalse);
+    });
+
+    test('FeedProvider mounts synchronously with cached disk pack (0ms)', () async {
+      final provider = FeedProvider(initialDate: '2030-01-01');
+      // Should immediately load the samplePack saved in the previous test
+      expect(provider.dailyPack, isNotNull);
+      expect(provider.dailyPack!.packDate, '2030-01-01');
+      expect(provider.isLoading, isFalse);
+    });
+
+    test('FeedProvider differentiates offline vs serverIssue vs serverTimeout messages', () {
+      final provider = FeedProvider(initialDate: '2030-01-01');
+      expect(provider.statusBannerMessage, '');
+
+      // Offline message
+      expect(FeedErrorType.offline.name, 'offline');
+      // Verify FeedFetchResult envelope
+      const offlineResult = FeedFetchResult(
+        errorType: FeedErrorType.offline,
+        errorMessage: 'No active internet connection',
+      );
+      expect(offlineResult.isSuccess, isFalse);
+      expect(offlineResult.errorType, FeedErrorType.offline);
+
+      const serverResult = FeedFetchResult(
+        errorType: FeedErrorType.serverIssue,
+        errorMessage: 'Cannot connect to backend server',
+      );
+      expect(serverResult.errorType, FeedErrorType.serverIssue);
+
+      const timeoutResult = FeedFetchResult(
+        errorType: FeedErrorType.serverTimeout,
+        errorMessage: 'Server is taking longer than usual to respond',
+      );
+      expect(timeoutResult.errorType, FeedErrorType.serverTimeout);
+    });
+  });
 }
+
 

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/services/feed_storage_service.dart';
 import 'core/state/feed_provider.dart';
 import 'core/state/settings_provider.dart';
 import 'core/theme/geist_theme.dart';
 import 'screens/main_shell.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  FeedStorageService.instance.initialize(prefs);
   runApp(const CuriosityApp());
 }
 

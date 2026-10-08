@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../core/models/feed_models.dart';
 import '../core/state/feed_provider.dart';
 import '../core/theme/geist_theme.dart';
 import '../widgets/bottom_nav.dart';
@@ -113,6 +114,101 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 
+  Widget _buildOfflineBanner(BuildContext context, FeedProvider feedProvider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bannerBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF3F1ED);
+    final bannerTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
+    final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
+    final retryColor = GeistColors.sage(isDark);
+
+    final indicatorColor = switch (feedProvider.errorType) {
+      FeedErrorType.offline => isDark ? const Color(0xFFE5A93C) : const Color(0xFFD48806),
+      FeedErrorType.serverTimeout => isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+      FeedErrorType.serverIssue => isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+      FeedErrorType.none => isDark ? const Color(0xFFE5A93C) : const Color(0xFFD48806),
+    };
+
+    final message = feedProvider.statusBannerMessage.isNotEmpty
+        ? feedProvider.statusBannerMessage
+        : 'Offline • Showing saved pack';
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 38.0),
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeistSpacing.md,
+        vertical: 4.0,
+      ),
+      decoration: BoxDecoration(
+        color: bannerBg,
+        border: Border(
+          bottom: BorderSide(
+            color: borderColor,
+            width: 1.0,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 6.0,
+            height: 6.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: indicatorColor,
+            ),
+          ),
+          const SizedBox(width: GeistSpacing.xs),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.0,
+                fontWeight: FontWeight.w500,
+                color: bannerTextColor,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ),
+          const SizedBox(width: GeistSpacing.xs),
+          Semantics(
+            button: true,
+            label: 'Retry connection',
+            child: InkWell(
+              onTap: feedProvider.isSyncing
+                  ? null
+                  : () {
+                      feedProvider.fetchDailyFeed();
+                    },
+              borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: feedProvider.isSyncing
+                    ? SizedBox(
+                        width: 12.0,
+                        height: 12.0,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(retryColor),
+                        ),
+                      )
+                    : Text(
+                        'Retry',
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w700,
+                          color: retryColor,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final feedProvider = context.watch<FeedProvider>();
@@ -126,7 +222,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
       body: Column(
         children: [
           if (feedProvider.isViewingArchive)
-            _buildArchiveBanner(context, feedProvider),
+            _buildArchiveBanner(context, feedProvider)
+          else if (feedProvider.isOffline)
+            _buildOfflineBanner(context, feedProvider),
           Expanded(
             child: IndexedStack(
               index: _currentTabIndex,

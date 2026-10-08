@@ -1,22 +1,10 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import '../constants/api_config.dart';
 
 /// Utilities for resolving and optimizing image URLs across web and native platforms.
 class ImageUtils {
   /// Resolves the backend base URL depending on runtime platform.
-  static String get baseUrl {
-    if (kIsWeb) {
-      final uri = Uri.base;
-      if (uri.host.isNotEmpty && uri.host != 'localhost' && uri.host != '127.0.0.1') {
-        return '${uri.scheme}://${uri.host}:8000';
-      }
-      return 'http://localhost:8000';
-    }
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-    } catch (_) {}
-    return 'http://localhost:8000';
-  }
+  static String get baseUrl => ApiConfig.baseUrl;
 
   /// Resolves an image URL so it renders properly across all platforms.
   ///

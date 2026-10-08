@@ -196,3 +196,26 @@ class VaultHistoryItem {
   };
 }
 
+/// Represents the classification of network/backend synchronization failures.
+enum FeedErrorType {
+  none,
+  offline,        // Device has no internet connection
+  serverTimeout,  // Backend took too long to respond (e.g. cold start)
+  serverIssue,    // Backend is down, returned 5xx, or connection refused
+}
+
+/// Result envelope for feed synchronization attempts.
+class FeedFetchResult {
+  final DailyPack? pack;
+  final FeedErrorType errorType;
+  final String? errorMessage;
+
+  const FeedFetchResult({
+    this.pack,
+    this.errorType = FeedErrorType.none,
+    this.errorMessage,
+  });
+
+  bool get isSuccess => pack != null;
+}
+
