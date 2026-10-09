@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Strict 4pt / 8pt grid spacing scale - Anti-Slop constraint
 class GeistSpacing {
   static const double xs = 4.0;
   static const double sm = 8.0;
@@ -9,46 +8,38 @@ class GeistSpacing {
   static const double lg = 24.0;
   static const double xl = 32.0;
   static const double xxl = 48.0;
-
-  // Soft pillowy Scandinavian border radiuses
   static const double radiusSm = 8.0;
   static const double radiusMd = 14.0;
   static const double radiusLg = 18.0;
   static const double radiusXl = 24.0;
 }
 
-/// Centralized Nordic Clay & Sage Design Tokens
 class GeistColors {
-  // Dark Palette (Nordic Slate & Sage)
-  static const Color darkBackground = Color(0xFF1A1D20); // Soothing dark graphite slate
-  static const Color darkSurface = Color(0xFF24282C);    // Elevated mineral clay
-  static const Color darkSurfaceElevated = Color(0xFF2C3136); // Modals, sheets, popovers
-  static const Color darkBorder = Color(0x1FFFFFFF);     // Soft mineral border (12% white)
-  static const Color darkBorderActive = Color(0x33FFFFFF); // 20% white
-  static const Color darkTextPrimary = Color(0xFFEDE8E1); // Warm oat milk cream (>12:1)
-  static const Color darkTextSecondary = Color(0xFF9BA3AB); // Muted slate (>5.0:1 on #24282C)
-  static const Color darkTextTertiary = Color(0xFF949DA7);  // Compliant: >5.4:1 on #24282C
-
-  // Light Palette (Warm Linen & Sage)
-  static const Color lightBackground = Color(0xFFFAF8F5); // Warm unbleached linen paper
-  static const Color lightSurface = Color(0xFFFFFFFF);    // Soft porcelain white
-  static const Color lightSurfaceElevated = Color(0xFFF2EFE9); // Elevated linen
-  static const Color lightBorder = Color(0x14000000);     // Subtle 8% black
+  static const Color darkBackground = Color(0xFF1A1D20);
+  static const Color darkSurface = Color(0xFF24282C);
+  static const Color darkSurfaceElevated = Color(0xFF2C3136);
+  static const Color darkBorder = Color(0x1FFFFFFF);
+  static const Color darkBorderActive = Color(0x33FFFFFF);
+  static const Color darkTextPrimary = Color(0xFFEDE8E1);
+  static const Color darkTextSecondary = Color(0xFF9BA3AB);
+  static const Color darkTextTertiary = Color(0xFF949DA7);
+  static const Color lightBackground = Color(0xFFFAF8F5);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightSurfaceElevated = Color(0xFFF2EFE9);
+  static const Color lightBorder = Color(0x14000000);
   static const Color lightBorderActive = Color(0x28000000);
-  static const Color lightTextPrimary = Color(0xFF1C1E21); // Deep warm charcoal (>13:1)
-  static const Color lightTextSecondary = Color(0xFF5F6872); // Soft mineral slate (5.2:1)
-  static const Color lightTextTertiary = Color(0xFF555E69);  // Compliant: >5.9:1 on #FFFFFF
-
-  // Accent / Status (Organic Sage & Terracotta)
-  static const Color accent = Color(0xFF5B8A72);           // Organic Sage Green (Graphical / fills)
-  static const Color accentTextDark = Color(0xFF7CB698);   // Compliant: >6.8:1 text on dark surfaces
-  static const Color accentLight = Color(0xFF3E6552);      // Deep Pine Sage (4.8:1 on light)
-  static const Color streak = Color(0xFFD97757);           // Warm Terracotta flame
-  static const Color streakLight = Color(0xFFB34924);      // Compliant: >5.0:1 on warm linen
-  static const Color success = Color(0xFF4E876A);          // Forest Sage
-  static const Color successTextLight = Color(0xFF2F664B); // 4.8:1 on light green tint
-  static const Color error = Color(0xFFC85A54);            // Brick Red
-  static const Color errorTextLight = Color(0xFFA83832);   // 4.9:1 on light red tint
+  static const Color lightTextPrimary = Color(0xFF1C1E21);
+  static const Color lightTextSecondary = Color(0xFF5F6872);
+  static const Color lightTextTertiary = Color(0xFF555E69);
+  static const Color accent = Color(0xFF5B8A72);
+  static const Color accentTextDark = Color(0xFF7CB698);
+  static const Color accentLight = Color(0xFF3E6552);
+  static const Color streak = Color(0xFFD97757);
+  static const Color streakLight = Color(0xFFB34924);
+  static const Color success = Color(0xFF4E876A);
+  static const Color successTextLight = Color(0xFF2F664B);
+  static const Color error = Color(0xFFC85A54);
+  static const Color errorTextLight = Color(0xFFA83832);
 
   // Component Semantic Tokens
   static const Color quizCorrectBgDark = Color(0xFF1A3326);
@@ -82,13 +73,43 @@ class GeistColors {
   static Color quizIncorrectBg(bool isDark) => isDark ? quizIncorrectBgDark : quizIncorrectBgLight;
   static Color bookmarkActiveBg(bool isDark) => isDark ? bookmarkActiveBgDark : bookmarkActiveBgLight;
   static Color dragHandle(bool isDark) => isDark ? dragHandleDark : dragHandleLight;
+
+  // Bottom Navigation Contrast Tokens
+  static const Color lightNavActiveBackground = Color(0xFFE5EDE8);
+  static const Color lightNavActiveBorder = Color(0xFFC6D8CD);
+  static const Color lightNavActiveIcon = Color(0xFF2C4E3D);
+  static const Color lightNavActiveText = Color(0xFF1C1E21);
+  static const Color lightNavInactive = Color(0xFF7D8794);
+
+  static const Color darkNavActiveBackground = Color(0xFF1C2A22);
+  static const Color darkNavActiveBorder = Color(0xFF2B4536);
+  static const Color darkNavActiveIcon = Color(0xFF8ECBB0);
+  static const Color darkNavActiveText = Color(0xFFEDE8E1);
+  static const Color darkNavInactive = Color(0xFF6F7782);
+
+  static Color navActiveBackground(bool isDark) => isDark ? darkNavActiveBackground : lightNavActiveBackground;
+  static Color navActiveBorder(bool isDark) => isDark ? darkNavActiveBorder : lightNavActiveBorder;
+  static Color navActiveIcon(bool isDark) => isDark ? darkNavActiveIcon : lightNavActiveIcon;
+  static Color navActiveText(bool isDark) => isDark ? darkNavActiveText : lightNavActiveText;
+  static Color navInactive(bool isDark) => isDark ? darkNavInactive : lightNavInactive;
+
+  // Functional Semantic Tokens
+  static Color surfaceCanvas(bool isDark) => background(isDark);
+  static Color surfaceCard(bool isDark) => cardSurface(isDark);
+  static Color surfaceElevated(bool isDark) => isDark ? darkSurfaceElevated : lightSurfaceElevated;
+  static Color borderHairline(bool isDark) => border(isDark);
+  static Color textPrimary(bool isDark) => primaryText(isDark);
+  static Color textSecondary(bool isDark) => secondaryText(isDark);
+  static Color textMuted(bool isDark) => tertiaryText(isDark);
+  static Color accentBrand(bool isDark) => sage(isDark);
+  static Color accentStreak(bool isDark) => streakColor(isDark);
 }
 
 class GeistTheme {
-  /// Dark Theme (Nordic Slate & Sage Aesthetic) - Cached instance
+  /// Dark Theme - Cached instance
   static final ThemeData darkTheme = _buildDarkTheme();
 
-  /// Light Theme (Warm Linen & Sage Aesthetic) - Cached instance
+  /// Light Theme - Cached instance
   static final ThemeData lightTheme = _buildLightTheme();
 
   static ThemeData _buildDarkTheme() {
@@ -232,4 +253,10 @@ class GeistTheme {
       ),
     );
   }
+}
+
+class GeistMotion {
+  static const durationFast = Duration(milliseconds: 200);
+  static const durationStandard = Duration(milliseconds: 320);
+  static const springCurve = Curves.fastLinearToSlowEaseIn;
 }

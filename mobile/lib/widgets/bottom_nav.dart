@@ -42,34 +42,34 @@ class GeistBottomNav extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 0,
-                  label: 'Articles',
-                  icon: Icons.article_outlined,
-                  activeIcon: Icons.article_rounded,
-                  badgeCount: unreadCounts['articles'] ?? 0,
+                  label: 'Facts',
+                  icon: Icons.newspaper_outlined,
+                  activeIcon: Icons.newspaper_rounded,
+                  badgeCount: unreadCounts['facts'] ?? 0,
                 ),
                 _buildNavItem(
                   context: context,
                   index: 1,
-                  label: 'Quizzes',
-                  icon: Icons.psychology_outlined,
-                  activeIcon: Icons.psychology_rounded,
+                  label: 'Quiz',
+                  icon: Icons.check_circle_outline_rounded,
+                  activeIcon: Icons.check_circle_rounded,
                   badgeCount: unreadCounts['quizzes'] ?? 0,
                 ),
                 _buildNavItem(
                   context: context,
                   index: 2,
                   label: 'Cosmos',
-                  icon: Icons.auto_awesome_outlined,
-                  activeIcon: Icons.auto_awesome_rounded,
+                  icon: Icons.bedtime_outlined,
+                  activeIcon: Icons.bedtime_rounded,
                   badgeCount: unreadCounts['cosmos'] ?? 0,
                 ),
                 _buildNavItem(
                   context: context,
                   index: 3,
-                  label: 'Facts',
-                  icon: Icons.bolt_outlined,
-                  activeIcon: Icons.bolt_rounded,
-                  badgeCount: unreadCounts['facts'] ?? 0,
+                  label: 'Articles',
+                  icon: Icons.menu_book_outlined,
+                  activeIcon: Icons.menu_book_rounded,
+                  badgeCount: unreadCounts['articles'] ?? 0,
                 ),
               ],
             ),
@@ -89,8 +89,6 @@ class GeistBottomNav extends StatelessWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = currentIndex == index;
-    final activeColor = isDark ? GeistColors.accentTextDark : GeistColors.accentLight;
-    final secondaryColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
 
     final unreadLabel = badgeCount > 0 ? '$badgeCount unread items' : 'all caught up';
 
@@ -114,9 +112,12 @@ class GeistBottomNav extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             decoration: BoxDecoration(
               color: isSelected
-                  ? (isDark ? const Color(0x245B8A72) : const Color(0x1F3E6552))
-                  : Colors.transparent,
+                  ? GeistColors.navActiveBackground(isDark)
+                  : GeistColors.navInactive(isDark).withValues(alpha: 0.0), // transparent fallback
               borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
+              border: isSelected
+                  ? Border.all(color: GeistColors.navActiveBorder(isDark), width: 1.0)
+                  : Border.all(color: Colors.transparent, width: 1.0),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -130,7 +131,7 @@ class GeistBottomNav extends StatelessWidget {
                       Icon(
                         isSelected ? activeIcon : icon,
                         size: 21.0,
-                        color: isSelected ? activeColor : secondaryColor,
+                        color: isSelected ? GeistColors.navActiveIcon(isDark) : GeistColors.navInactive(isDark),
                       ),
                       // Badge overlay
                       if (badgeCount > 0)
@@ -158,20 +159,6 @@ class GeistBottomNav extends StatelessWidget {
                               ),
                             ),
                           ),
-                        )
-                      else
-                        // "Inbox Zero" subtle completion indicator
-                        Positioned(
-                          top: -2.0,
-                          right: -6.0,
-                          child: Container(
-                            width: 5.0,
-                            height: 5.0,
-                            decoration: const BoxDecoration(
-                              color: GeistColors.success,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
                         ),
                     ],
                   ),
@@ -187,7 +174,7 @@ class GeistBottomNav extends StatelessWidget {
                       fontSize: 11.0,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                       letterSpacing: -0.2,
-                      color: isSelected ? activeColor : secondaryColor,
+                      color: isSelected ? GeistColors.navActiveText(isDark) : GeistColors.navInactive(isDark),
                     ),
                   ),
                 ),

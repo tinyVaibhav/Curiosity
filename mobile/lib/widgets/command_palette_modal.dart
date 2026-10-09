@@ -6,6 +6,7 @@ import '../core/theme/geist_theme.dart';
 import '../core/utils/image_utils.dart';
 import '../core/utils/text_utils.dart';
 import '../screens/category_feed_screen.dart';
+import '../screens/vault_screen.dart';
 import '../services/discovery_service.dart';
 import 'article_card.dart';
 import 'fact_reader_modal.dart';
@@ -420,7 +421,115 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
           ),
           const SizedBox(height: GeistSpacing.xl),
 
-          // Section 2: Explore Seed Categories
+          const SizedBox(height: GeistSpacing.lg),
+
+          // Section 2: Archives & Preferences
+          Semantics(
+            header: true,
+            child: Text(
+              'ARCHIVES & PREFERENCES',
+              style: TextStyle(
+                fontSize: 11.0,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.1,
+                color: secondaryTextColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: GeistSpacing.sm),
+
+          // The Vault row
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const VaultScreen()),
+              );
+            },
+            borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: surfaceColor,
+                  borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+                  border: Border.all(color: borderColor, width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today_outlined, size: 18.0, color: sageColor),
+                    const SizedBox(width: GeistSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'The Vault & Past Archives',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: primaryTextColor,
+                            ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          Text(
+                            'Browse past 30 days and time travel',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: secondaryTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12.0, color: secondaryTextColor),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: GeistSpacing.sm),
+
+          // Settings row
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              SettingsModal.show(context);
+            },
+            borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: surfaceColor,
+                  borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
+                  border: Border.all(color: borderColor, width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.tune_rounded, size: 18.0, color: sageColor),
+                    const SizedBox(width: GeistSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Settings & Appearance Mode',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: primaryTextColor,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12.0, color: secondaryTextColor),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: GeistSpacing.lg),
+
+          // Section 3: Explore Seed Categories
           Semantics(
             header: true,
             child: Text(
@@ -479,57 +588,6 @@ class _CommandPaletteModalState extends State<CommandPaletteModal> {
                 ),
               );
             }).toList(),
-          ),
-          const SizedBox(height: GeistSpacing.lg),
-
-          // Section 3: Preferences & Settings
-          Semantics(
-            header: true,
-            child: Text(
-              'PREFERENCES & APPEARANCE',
-              style: TextStyle(
-                fontSize: 11.0,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.1,
-                color: secondaryTextColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: GeistSpacing.sm),
-          InkWell(
-            onTap: () {
-              Navigator.of(context).pop();
-              SettingsModal.show(context);
-            },
-            borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48.0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: surfaceColor,
-                  borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
-                  border: Border.all(color: borderColor, width: 1.0),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.tune_rounded, size: 18.0, color: sageColor),
-                    const SizedBox(width: GeistSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        'Settings & Appearance Mode',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: primaryTextColor,
-                        ),
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios_rounded, size: 12.0, color: secondaryTextColor),
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),

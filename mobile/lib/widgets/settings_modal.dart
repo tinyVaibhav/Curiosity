@@ -595,14 +595,19 @@ class SettingsModal extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14.0,
-              fontWeight: FontWeight.w600,
-              color: primaryTextColor,
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w600,
+                color: primaryTextColor,
+              ),
             ),
           ),
+          const SizedBox(width: GeistSpacing.sm),
           Text(
             trailingText,
             style: TextStyle(

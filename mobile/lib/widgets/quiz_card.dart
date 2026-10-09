@@ -79,50 +79,24 @@ class _QuizCardState extends State<QuizCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2C3136) : const Color(0xFFEDE8E1),
-                        borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
-                        border: Border.all(color: borderColor, width: 1.0),
-                      ),
-                      child: Text(
-                        '#QUIZ',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontSize: 10.0,
-                              color: secondaryTextColor,
-                            ),
-                      ),
-                    ),
-                    const SizedBox(width: GeistSpacing.sm),
-                    Text(
-                      'QUESTION ${widget.questionIndex} OF ${widget.totalQuestions}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: secondaryTextColor,
-                            fontSize: 10.5,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                    ),
-                  ],
-                ),
-                if (_hasAnswered || widget.isRead)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.check_rounded, size: 14.0, color: GeistColors.success),
-                      const SizedBox(width: 3.0),
-                      Text(
-                        'Answered',
-                        style: TextStyle(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFFB4E0C8) : GeistColors.successTextLight,
-                        ),
-                      ),
-                    ],
+                Text(
+                  'CHALLENGE • MULTIPLE CHOICE',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'monospace',
+                    color: secondaryTextColor,
                   ),
+                ),
+                Text(
+                  '+50 pts',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'monospace',
+                    color: isDark ? const Color(0xFF8ECBB0) : const Color(0xFF3E6552),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: GeistSpacing.md),
@@ -139,10 +113,11 @@ class _QuizCardState extends State<QuizCard> {
             const SizedBox(height: GeistSpacing.lg),
 
             // Options List (4 Full-Width Buttons)
-            ..._shuffledOptions.map((option) {
+            ..._shuffledOptions.asMap().entries.map((entry) {
               return _buildOptionButton(
                 context: context,
-                option: option,
+                option: entry.value,
+                index: entry.key + 1,
                 isDark: isDark,
                 primaryTextColor: primaryTextColor,
               );
@@ -155,11 +130,11 @@ class _QuizCardState extends State<QuizCard> {
                 liveRegion: true,
                 container: true,
                 label: isCorrect
-                    ? 'Correct answer! Spot on! The verified answer is ${widget.quiz.correctAnswer}.'
+                    ? 'Correct answer! The verified answer is ${widget.quiz.correctAnswer}.'
                     : 'Incorrect. The correct answer is ${widget.quiz.correctAnswer}.',
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
+                  duration: GeistMotion.durationStandard,
+                  curve: GeistMotion.springCurve,
                   padding: const EdgeInsets.all(GeistSpacing.md),
                   decoration: BoxDecoration(
                     color: isCorrect
@@ -197,7 +172,7 @@ class _QuizCardState extends State<QuizCard> {
                             const SizedBox(height: 2.0),
                             Text(
                               isCorrect
-                                  ? 'Spot on! The verified answer is “${widget.quiz.correctAnswer}”.'
+                                  ? 'The verified answer is “${widget.quiz.correctAnswer}”.'
                                   : 'The correct answer is “${widget.quiz.correctAnswer}”.',
                               style: TextStyle(
                                 fontSize: 13.0,
@@ -222,6 +197,7 @@ class _QuizCardState extends State<QuizCard> {
   Widget _buildOptionButton({
     required BuildContext context,
     required String option,
+    required int index,
     required bool isDark,
     required Color primaryTextColor,
   }) {
@@ -252,7 +228,7 @@ class _QuizCardState extends State<QuizCard> {
         // Other non-selected options
         buttonBackground = isDark ? const Color(0xFF181B1E) : const Color(0xFFF5F3EF);
         buttonBorder = isDark ? const Color(0xFF282D32) : const Color(0xFFEDE8E1);
-        textColor = isDark ? GeistColors.darkTextTertiary : GeistColors.lightTextTertiary;
+        textColor = isDark ? GeistColors.textMuted(isDark) : GeistColors.textMuted(isDark);
       }
     }
 
@@ -277,7 +253,8 @@ class _QuizCardState extends State<QuizCard> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48.0),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: GeistMotion.durationStandard,
+                curve: GeistMotion.springCurve,
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: GeistSpacing.md,
@@ -290,6 +267,24 @@ class _QuizCardState extends State<QuizCard> {
                 ),
                 child: Row(
                   children: [
+                    Container(
+                      width: 24.0,
+                      height: 24.0,
+                      margin: const EdgeInsets.only(right: GeistSpacing.md),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2C3136) : const Color(0xFFE5E0D8),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: Text(
+                        '$index',
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? GeistColors.textSecondary(isDark) : GeistColors.textSecondary(isDark),
+                        ),
+                      ),
+                    ),
                     Expanded(
                       child: Text(
                         option,

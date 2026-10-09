@@ -229,10 +229,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
             child: IndexedStack(
               index: _currentTabIndex,
               children: const [
-                ArticlesScreen(),
+                FactsScreen(),
                 QuizzesScreen(),
                 CosmosScreen(),
-                FactsScreen(),
+                ArticlesScreen(),
               ],
             ),
           ),

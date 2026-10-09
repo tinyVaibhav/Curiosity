@@ -1,7 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../core/models/feed_models.dart';
 import '../core/theme/geist_theme.dart';
 import '../core/utils/image_utils.dart';
+import 'image_viewer_modal.dart';
 
 class CosmosCard extends StatefulWidget {
   final CosmosItem cosmos;
@@ -31,6 +33,47 @@ class _CosmosCardState extends State<CosmosCard> {
     }
   }
 
+  void _openImageViewer(BuildContext context) {
+    if (!widget.isRead) {
+      widget.onExpand();
+    }
+    ImageViewerModal.show(
+      context,
+      imageUrl: widget.cosmos.url,
+      title: widget.cosmos.title,
+      caption: widget.cosmos.explanation,
+    );
+  }
+
+  Widget _buildSkeleton(bool isDark) {
+    return Container(
+      color: isDark ? const Color(0xFF161616) : const Color(0xFFEEEEEE),
+      child: Center(
+        child: SizedBox(
+          width: 24.0,
+          height: 24.0,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.0,
+            color: isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(bool isDark, Color secondaryTextColor) {
+    return Container(
+      color: isDark ? const Color(0xFF24282C) : const Color(0xFFF2EFE9),
+      child: Center(
+        child: Icon(
+          Icons.auto_awesome_outlined,
+          size: 40.0,
+          color: secondaryTextColor.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -38,6 +81,9 @@ class _CosmosCardState extends State<CosmosCard> {
     final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
     final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
     final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
+    final canvasColor = isDark ? const Color(0xFF191C1F) : const Color(0xFFEDE8E1);
+    final scrimColor = isDark ? const Color(0x99191C1F) : const Color(0x99F5F0EB);
+    final resolvedUrl = ImageUtils.resolveImageUrl(widget.cosmos.url);
 
     return Container(
       decoration: BoxDecoration(
@@ -49,143 +95,183 @@ class _CosmosCardState extends State<CosmosCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Edge-to-Edge Visual Focal Point with Gradient Text Overlay
+          // 1. Edge-to-Edge Visual Focal Point with Ambient Matting & Tap-to-Zoom
           AspectRatio(
             aspectRatio: 16 / 10,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Space Photograph
-                Image.network(
-                  ImageUtils.resolveImageUrl(widget.cosmos.url),
-                  semanticLabel: 'Space photograph: ${widget.cosmos.title}',
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return Container(
-                      color: isDark ? const Color(0xFF161616) : const Color(0xFFEEEEEE),
-                      child: Center(
-                        child: SizedBox(
-                          width: 24.0,
-                          height: 24.0,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
-                            color: secondaryTextColor,
+            child: Material(
+              color: canvasColor,
+              child: InkWell(
+                onTap: () => _openImageViewer(context),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // 1a. Ambient blurred background glow from image palette
+                    ClipRect(
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0),
+                        child: Transform.scale(
+                          scale: 1.25,
+                          child: Image.network(
+                            resolvedUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: isDark ? const Color(0xFF24282C) : const Color(0xFFF2EFE9),
-                      child: Center(
-                        child: Icon(
-                          Icons.auto_awesome_outlined,
-                          size: 40.0,
-                          color: secondaryTextColor.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                // Smooth Dark Linear Gradient (to-top from black to transparent)
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.92),
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.45, 0.85],
                       ),
                     ),
-                  ),
-                ),
 
-                // Overlay Text: Category Tag, Title, and Read Badge
-                Positioned(
-                  left: GeistSpacing.md,
-                  right: GeistSpacing.md,
-                  bottom: GeistSpacing.md,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.8),
-                            ),
-                            child: const Text(
-                              '#COSMOS · NASA APOD',
-                              style: TextStyle(
-                                fontSize: 10.0,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.8,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          if (widget.isRead)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.check_rounded, size: 12.0, color: GeistColors.success),
-                                  SizedBox(width: 3.0),
-                                  Text(
-                                    'Read',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: GeistColors.success,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: GeistSpacing.xs),
-                      Semantics(
-                        header: true,
+                    // 1b. Soft tinted scrim for harmonious contrast
+                    Container(color: scrimColor),
+
+                    // 1c. Foreground uncropped image (100% visible, zero cropping)
+                    Image.network(
+                      resolvedUrl,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.center,
+                      semanticLabel: 'Space photograph: ${widget.cosmos.title}',
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return _buildSkeleton(isDark);
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildPlaceholder(isDark, secondaryTextColor);
+                      },
+                    ),
+
+                    // Top-Left Overlay: NASA APOD
+                    Positioned(
+                      top: GeistSpacing.sm,
+                      left: GeistSpacing.sm,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                        ),
                         child: Text(
-                          widget.cosmos.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                letterSpacing: -0.3,
-                                height: 1.25,
-                              ),
+                          'NASA APOD • DEEP SKY',
+                          style: TextStyle(
+                            fontSize: 10.0,
+                            fontFamily: 'monospace',
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
                         ),
                       ),
-                    ],
+                    ),
+
+                    // Bottom-Left Overlay: Date or Coordinates
+                    Positioned(
+                      bottom: GeistSpacing.sm,
+                      left: GeistSpacing.sm,
+                      child: Text(
+                        'JAMES WEBB NIRCam',
+                        style: TextStyle(
+                          fontSize: 11.0,
+                          fontFamily: 'monospace',
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+
+                    // 1d. Subtle "Pinch / Tap to enlarge" affordance pill
+                    Positioned(
+                      right: GeistSpacing.sm,
+                      bottom: GeistSpacing.sm,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.fullscreen_rounded, size: 14.0, color: Colors.white),
+                            SizedBox(width: 4.0),
+                            Text(
+                              'Zoom',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 2. Editorial Metadata & Header Block (cleanly separated below photo)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              GeistSpacing.md,
+              GeistSpacing.md,
+              GeistSpacing.md,
+              GeistSpacing.xs,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.isRead) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                    decoration: BoxDecoration(
+                      color: GeistColors.success.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                      border: Border.all(
+                        color: GeistColors.success.withValues(alpha: 0.3),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.check_rounded, size: 12.0, color: GeistColors.success),
+                        SizedBox(width: 3.0),
+                        Text(
+                          'Read',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: GeistColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: GeistSpacing.sm),
+                ],
+                Semantics(
+                  header: true,
+                  child: Text(
+                    widget.cosmos.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 17.0,
+                          fontWeight: FontWeight.w700,
+                          color: primaryTextColor,
+                          letterSpacing: -0.3,
+                          height: 1.3,
+                        ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // 2. The Astronomer's Notes - Accordion Trigger
+          // 3. The Astronomer's Notes - Accordion Trigger
           Semantics(
             button: true,
             expanded: _isExpanded,
@@ -233,11 +319,11 @@ class _CosmosCardState extends State<CosmosCard> {
             ),
           ),
 
-          // 3. Smooth In-Place Accordion Content
+          // 4. Smooth In-Place Accordion Content
           AnimatedCrossFade(
-            duration: const Duration(milliseconds: 250),
-            firstCurve: Curves.easeInOut,
-            secondCurve: Curves.easeInOut,
+            duration: GeistMotion.durationStandard,
+            firstCurve: GeistMotion.springCurve,
+            secondCurve: GeistMotion.springCurve,
             crossFadeState: _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
             firstChild: const SizedBox.shrink(),
             secondChild: Container(

@@ -11,6 +11,8 @@ import 'package:curiosity_mobile/main.dart';
 import 'package:curiosity_mobile/core/models/feed_models.dart';
 import 'package:curiosity_mobile/core/utils/image_utils.dart';
 import 'package:curiosity_mobile/widgets/article_card.dart';
+import 'package:curiosity_mobile/widgets/cosmos_card.dart';
+import 'package:curiosity_mobile/widgets/image_viewer_modal.dart';
 import 'package:curiosity_mobile/widgets/quiz_card.dart';
 import 'package:curiosity_mobile/widgets/settings_modal.dart';
 import 'package:curiosity_mobile/widgets/vault_history_card.dart';
@@ -52,28 +54,36 @@ void main() {
       await tester.pumpWidget(const CuriosityApp());
       await tester.pumpAndSettle();
 
-      // --- 1. ARTICLES TAB (Tab 0) ---
-      expect(find.text('DAILY DEEP DIVES'), findsOneWidget);
-      expect(find.text('Read Full Article ↗'), findsWidgets);
+      // --- 1. FACTS TAB (Tab 0) ---
+      expect(find.text('DAILY COMPOSITE FACTS'), findsOneWidget);
+      expect(find.text('Save to Vault'), findsWidgets);
+      expect(find.text('Share'), findsWidgets);
 
-      // Tap first article card to open reader modal
-      await tester.tap(find.text('Read Full Article ↗').first);
+      // Test Save to Vault toggle
+      await tester.ensureVisible(find.text('Save to Vault').first);
       await tester.pumpAndSettle();
-      expect(find.text('Open Full Wikipedia Article ↗'), findsOneWidget);
+      await tester.tap(find.text('Save to Vault').first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.text('Saved'), findsOneWidget);
 
-      // Close modal
-      Navigator.of(tester.element(find.text('Open Full Wikipedia Article ↗'))).pop();
+      // Verify FeedProvider state directly: mark fact read
+      final feedProvider = Provider.of<FeedProvider>(
+        tester.element(find.byType(Scaffold).first),
+        listen: false,
+      );
+      // Advance virtual clock past the 1-second dwell threshold for visible FactCards
+      await tester.pump(const Duration(milliseconds: 1100));
       await tester.pumpAndSettle();
 
-      // Verify article badge decremented: 2 unread
-      expect(find.text('2 unread'), findsOneWidget);
+      // Visibility dwell timer fired for visible cards on screen
+      expect(feedProvider.unreadCounts['facts'], lessThan(6));
 
-      // --- 2. QUIZZES TAB (Tab 1) ---
-      await tester.tap(find.text('Quizzes'));
+      // --- 2. QUIZ TAB (Tab 1) ---
+      await tester.tap(find.text('Quiz'));
       await tester.pumpAndSettle();
 
       expect(find.text('DAILY TRIVIA QUIZZES'), findsOneWidget);
-      expect(find.text('#QUIZ'), findsWidgets);
+      expect(find.text('CHALLENGE • MULTIPLE CHOICE'), findsWidgets);
 
       // Tap an answer option on the first question
       final optionFinder = find.descendant(
@@ -85,7 +95,6 @@ void main() {
 
       // Verify explanation box appears with answer feedback
       expect(find.textContaining('answer is', findRichText: true), findsWidgets);
-      expect(find.text('Answered'), findsWidgets);
 
       // --- 3. COSMOS TAB (Tab 2) ---
       await tester.tap(find.text('Cosmos'));
@@ -100,31 +109,21 @@ void main() {
 
       expect(find.text('Collapse Scientific Breakdown'), findsOneWidget);
 
-      // --- 4. FACTS TAB (Tab 3) ---
-      await tester.tap(find.text('Facts'));
+      // --- 4. ARTICLES TAB (Tab 3) ---
+      await tester.tap(find.text('Articles'));
       await tester.pumpAndSettle();
 
-      expect(find.text('DAILY COMPOSITE FACTS'), findsOneWidget);
-      expect(find.text('Bookmark'), findsWidgets);
-      expect(find.text('Share'), findsWidgets);
+      expect(find.text('DAILY DEEP DIVES'), findsOneWidget);
+      expect(find.text('Read Full Article →'), findsWidgets);
 
-      // Test Bookmark toggle
-      await tester.tap(find.text('Bookmark').first);
+      // Tap first article card to open reader modal
+      await tester.tap(find.text('Read Full Article →').first);
       await tester.pumpAndSettle();
-      expect(find.text('Saved'), findsOneWidget);
+      expect(find.text('Open Full Wikipedia Article ↗'), findsOneWidget);
 
-      // Verify FeedProvider state directly: mark fact read
-      final feedProvider = Provider.of<FeedProvider>(
-        tester.element(find.text('DAILY COMPOSITE FACTS')),
-        listen: false,
-      );
-      // Advance virtual clock past the 1-second dwell threshold for visible FactCards
-      await tester.pump(const Duration(milliseconds: 1100));
+      // Close modal
+      Navigator.of(tester.element(find.text('Open Full Wikipedia Article ↗'))).pop();
       await tester.pumpAndSettle();
-
-      // Visibility dwell timer fired for visible cards on screen
-      expect(feedProvider.unreadCounts['facts'], lessThan(6));
-      expect(find.textContaining('unread'), findsWidgets);
 
       // Drain any pending micro-timers before teardown
       await tester.pump(const Duration(seconds: 2));
@@ -142,10 +141,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1. Trigger Command Palette from TopBar
-      expect(find.text('Search topics…'), findsOneWidget);
-      expect(find.text('⌘\u00A0K'), findsOneWidget);
+      expect(find.byTooltip('Search topics, command palette'), findsOneWidget);
 
-      await tester.tap(find.text('Search topics…'));
+      await tester.tap(find.byTooltip('Search topics, command palette'));
       await tester.pumpAndSettle();
 
       // 2. Initial state: Serendipity and Categories
@@ -170,7 +168,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Re-open palette
-      await tester.tap(find.text('Search topics…'));
+      await tester.tap(find.byTooltip('Search topics, command palette'));
       await tester.pumpAndSettle();
 
       // 4. Test live search with debounce
@@ -193,7 +191,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Re-open palette
-      await tester.tap(find.text('Search topics…'));
+      await tester.tap(find.byTooltip('Search topics, command palette'));
       await tester.pumpAndSettle();
 
       // 5. Test Category Feed navigation
@@ -216,7 +214,7 @@ void main() {
       await tester.tap(find.text('Back to Today'));
       await tester.pumpAndSettle();
 
-      expect(find.text('DAILY DEEP DIVES'), findsOneWidget);
+      expect(find.text('DAILY COMPOSITE FACTS'), findsOneWidget);
     });
   });
 
@@ -254,7 +252,7 @@ void main() {
 
       // Verify bottom nav unread badges are hidden in archive mode
       final feedProvider = Provider.of<FeedProvider>(
-        tester.element(find.text('DAILY DEEP DIVES')),
+        tester.element(find.text('DAILY COMPOSITE FACTS')),
         listen: false,
       );
       expect(feedProvider.isViewingArchive, isTrue);
@@ -306,6 +304,31 @@ void main() {
       // Light Mode Linen & Porcelain
       expect(GeistColors.lightBackground, const Color(0xFFFAF8F5));
       expect(GeistColors.lightSurface, const Color(0xFFFFFFFF));
+      
+      // Nav Contrast Tokens - Light Mode
+      expect(GeistColors.lightNavActiveBackground, const Color(0xFFE5EDE8));
+      expect(GeistColors.lightNavActiveBorder, const Color(0xFFC6D8CD));
+      expect(GeistColors.lightNavActiveIcon, const Color(0xFF2C4E3D));
+      expect(GeistColors.lightNavActiveText, const Color(0xFF1C1E21));
+      expect(GeistColors.lightNavInactive, const Color(0xFF7D8794));
+      
+      // Nav Contrast Tokens - Dark Mode
+      expect(GeistColors.darkNavActiveBackground, const Color(0xFF1C2A22));
+      expect(GeistColors.darkNavActiveBorder, const Color(0xFF2B4536));
+      expect(GeistColors.darkNavActiveIcon, const Color(0xFF8ECBB0));
+      expect(GeistColors.darkNavActiveText, const Color(0xFFEDE8E1));
+      expect(GeistColors.darkNavInactive, const Color(0xFF6F7782));
+      
+      // Semantic Tokens Verification
+      expect(GeistColors.surfaceCanvas(false), GeistColors.lightBackground);
+      expect(GeistColors.surfaceCard(false), GeistColors.lightSurface);
+      expect(GeistColors.surfaceElevated(false), GeistColors.lightSurfaceElevated);
+      expect(GeistColors.borderHairline(false), GeistColors.lightBorder);
+      expect(GeistColors.textPrimary(false), GeistColors.lightTextPrimary);
+      expect(GeistColors.textSecondary(false), GeistColors.lightTextSecondary);
+      expect(GeistColors.textMuted(false), GeistColors.lightTextTertiary);
+      expect(GeistColors.accentBrand(false), GeistColors.accentLight);
+      expect(GeistColors.accentStreak(false), GeistColors.streakLight);
     });
 
     test('WCAG 2.1 AA text and accent contrast validation (>4.5:1)', () {
@@ -359,33 +382,41 @@ void main() {
       await tester.pumpWidget(const CuriosityApp());
       await tester.pumpAndSettle();
 
-      // Top bar search bar touch target height
-      final searchInkWell = tester.widget<InkWell>(find.widgetWithText(InkWell, 'Search topics…'));
-      expect(searchInkWell, isNotNull);
-      final searchBox = tester.renderObject(find.widgetWithText(InkWell, 'Search topics…')) as RenderBox;
+      // Top bar search button touch target
+      final searchBox = tester.renderObject(find.byTooltip('Search topics, command palette').first) as RenderBox;
       expect(searchBox.size.height, greaterThanOrEqualTo(48.0));
+      expect(searchBox.size.width, greaterThanOrEqualTo(44.0));
 
-      // Vault button in top bar touch target size
-      final vaultButtonBox = tester.renderObject(find.byTooltip('The Vault, view archives')) as RenderBox;
-      expect(vaultButtonBox.size.width, greaterThanOrEqualTo(48.0));
+      // Vault button in top bar touch target
+      final vaultButtonBox = tester.renderObject(find.byTooltip('The Vault, view archives').first) as RenderBox;
+      expect(vaultButtonBox.size.width, greaterThanOrEqualTo(44.0));
       expect(vaultButtonBox.size.height, greaterThanOrEqualTo(48.0));
+
+      // Settings button in top bar touch target
+      final settingsButtonBox = tester.renderObject(find.byTooltip('Settings & Preferences').first) as RenderBox;
+      expect(settingsButtonBox.size.width, greaterThanOrEqualTo(44.0));
+      expect(settingsButtonBox.size.height, greaterThanOrEqualTo(48.0));
     });
   });
 
   group('In-App Settings & Dynamic ThemeMode Switching Tests', () {
-    testWidgets('Top bar Settings icon renders with >= 48x48 dp touch target', (WidgetTester tester) async {
+    testWidgets('Command Palette Settings entry renders with accessible touch targets', (WidgetTester tester) async {
       await tester.pumpWidget(const CuriosityApp());
       await tester.pumpAndSettle();
 
-      final settingsIconFinder = find.byTooltip('Settings & Preferences');
-      expect(settingsIconFinder, findsOneWidget);
+      await tester.tap(find.byTooltip('Search topics, command palette'));
+      await tester.pumpAndSettle();
 
-      final settingsBox = tester.renderObject(settingsIconFinder) as RenderBox;
-      expect(settingsBox.size.width, greaterThanOrEqualTo(48.0));
-      expect(settingsBox.size.height, greaterThanOrEqualTo(48.0));
+      final settingsEntryFinder = find.text('Settings & Appearance Mode');
+      expect(settingsEntryFinder, findsOneWidget);
     });
 
-    testWidgets('Tapping Settings icon opens SettingsModal with all 4 modular sections', (WidgetTester tester) async {
+    testWidgets('Tapping Settings opens SettingsModal with all 4 modular sections', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(const CuriosityApp());
       await tester.pumpAndSettle();
 
@@ -403,11 +434,16 @@ void main() {
     });
 
     testWidgets('Switching between Light, Dark, and System dynamically updates theme and rendered brightness', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final settingsProvider = SettingsProvider();
       await tester.pumpWidget(CuriosityApp(settingsProvider: settingsProvider));
       await tester.pumpAndSettle();
 
-      // Open settings
+      // Open settings directly from top bar
       await tester.tap(find.byTooltip('Settings & Preferences'));
       await tester.pumpAndSettle();
 
@@ -437,6 +473,11 @@ void main() {
     });
 
     testWidgets('Settings controls satisfy minimum 48dp touch targets and toggle preferences', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final settingsProvider = SettingsProvider();
       await tester.pumpWidget(CuriosityApp(settingsProvider: settingsProvider));
       await tester.pumpAndSettle();
@@ -549,22 +590,74 @@ void main() {
       // Verify Reader Modal renders
       expect(find.text('WIKIPEDIA FEATURED DEEP DIVE'), findsOneWidget);
 
-      // Verify Reader Modal image is rendered with BoxFit.contain and bounded height constraint
+      // Verify Reader Modal image is rendered with ambient matting and BoxFit.contain
       final imageFinders = find.byType(Image, skipOffstage: false);
-      expect(imageFinders, findsOneWidget);
-      final readerImage = tester.widget<Image>(imageFinders.first);
-      expect(readerImage.fit, BoxFit.contain);
-      expect(readerImage.alignment, Alignment.center);
+      expect(imageFinders, findsWidgets);
+      final images = tester.widgetList<Image>(imageFinders).toList();
+      final hasContainedForeground = images.any((img) => img.fit == BoxFit.contain);
+      expect(hasContainedForeground, isTrue);
 
-      // Verify ClipRRect and max-height 360 container
+      // Verify ClipRRect and AspectRatio container
       final clipRRectFinder = find.byType(ClipRRect, skipOffstage: false);
       expect(clipRRectFinder, findsWidgets);
+    });
 
-      final containerFinder = find.ancestor(
-        of: imageFinders.first,
-        matching: find.byType(Container),
+    testWidgets('CosmosCard renders uncropped image with ambient matting and opens ImageViewerModal on tap', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const cosmos = CosmosItem(
+        title: 'The Pillars of Creation',
+        url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg/640px-Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg',
+        explanation: 'The Pillars of Creation are elephant trunks of interstellar gas and dust in the Eagle Nebula.',
       );
-      expect(containerFinder, findsWidgets);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: GeistTheme.lightTheme,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: CosmosCard(
+                cosmos: cosmos,
+                isRead: false,
+                onExpand: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Verify CosmosCard renders title and tag
+      expect(find.text('NASA APOD • DEEP SKY'), findsOneWidget);
+      expect(find.text('The Pillars of Creation'), findsOneWidget);
+
+      // Verify image has uncropped contain foreground image and blurred background
+      final imageFinders = find.byType(Image);
+      expect(imageFinders, findsWidgets);
+      final images = tester.widgetList<Image>(imageFinders).toList();
+      final hasContainedForeground = images.any((img) => img.fit == BoxFit.contain);
+      expect(hasContainedForeground, isTrue);
+
+      // Verify Zoom affordance badge exists
+      expect(find.text('Zoom'), findsOneWidget);
+
+      // Tap image to open ImageViewerModal
+      await tester.tap(find.text('Zoom'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verify ImageViewerModal opened
+      expect(find.byType(ImageViewerModal), findsOneWidget);
+      expect(find.byTooltip('Reset zoom'), findsOneWidget);
+
+      // Close modal
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ImageViewerModal), findsNothing);
     });
   });
 

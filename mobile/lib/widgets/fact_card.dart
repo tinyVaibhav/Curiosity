@@ -38,14 +38,12 @@ class _FactCardState extends State<FactCard> {
     if (widget.isRead) return;
 
     if (info.visibleFraction >= 0.65) {
-      // Start 1-second dwell timer
       _visibilityTimer ??= Timer(const Duration(milliseconds: 1000), () {
         if (mounted && !widget.isRead) {
           widget.onViewed();
         }
       });
     } else {
-      // Scrolled out of view before 1s dwell
       _visibilityTimer?.cancel();
       _visibilityTimer = null;
     }
@@ -58,13 +56,12 @@ class _FactCardState extends State<FactCard> {
     try {
       await SharePlus.instance.share(ShareParams(text: shareText, subject: 'Curiosity Daily Fact'));
     } catch (_) {
-      // Fallback for environments where native share sheet is unavailable (e.g., Desktop/Web testing)
       await Clipboard.setData(ClipboardData(text: shareText));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
-              'Fact copied to clipboard 📋',
+              'Fact copied to clipboard',
               style: TextStyle(color: GeistColors.darkTextPrimary),
             ),
             backgroundColor: GeistColors.darkSurface,
@@ -89,7 +86,7 @@ class _FactCardState extends State<FactCard> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _isBookmarked ? 'Saved to Vault bookmarks 🔖' : 'Removed from bookmarks',
+          _isBookmarked ? 'Saved to Vault bookmarks' : 'Removed from bookmarks',
           style: const TextStyle(color: GeistColors.darkTextPrimary),
         ),
         backgroundColor: GeistColors.darkSurface,
@@ -115,7 +112,7 @@ class _FactCardState extends State<FactCard> {
       key: Key('fact_visibility_${widget.factIndex}_${widget.fact.text.hashCode}'),
       onVisibilityChanged: _onVisibilityChanged,
       child: Container(
-        padding: const EdgeInsets.all(GeistSpacing.xl), // Generous 32px padding
+        padding: const EdgeInsets.all(GeistSpacing.xl),
         decoration: BoxDecoration(
           color: surfaceColor,
           borderRadius: BorderRadius.circular(GeistSpacing.radiusLg),
@@ -124,155 +121,182 @@ class _FactCardState extends State<FactCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row: Source Pill & Read State
+            // Header Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C3136) : const Color(0xFFEDE8E1),
+                      borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                    ),
+                    child: Text(
+                      '#FACT · ${widget.fact.source.toUpperCase()}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10.0),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C3136) : const Color(0xFFEDE8E1),
+                    color: isDark ? const Color(0xFF1A2821) : const Color(0xFFEDF5F1),
                     borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
                   ),
-                  child: Text(
-                    '#FACT · ${widget.fact.source.toUpperCase()}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10.0),
-                  ),
-                ),
-                if (widget.isRead)
-                  Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.check_rounded, size: 14.0, color: GeistColors.success),
-                      SizedBox(width: 3.0),
+                    children: [
+                      Icon(Icons.check_rounded, size: 12.0, color: isDark ? const Color(0xFF8ECBB0) : const Color(0xFF2C4E3D)),
+                      const SizedBox(width: 4.0),
                       Text(
-                        'Read',
+                        'VERIFIED SOURCE',
                         style: TextStyle(
-                          fontSize: 11.0,
+                          fontSize: 10.0,
                           fontWeight: FontWeight.w700,
-                          color: GeistColors.success,
+                          fontFamily: 'monospace',
+                          color: isDark ? const Color(0xFF8ECBB0) : const Color(0xFF2C4E3D),
                         ),
                       ),
                     ],
                   ),
+                ),
               ],
             ),
             const SizedBox(height: GeistSpacing.lg),
 
-            // Fact Text (Editorial Serif / Quote Treatment)
+            // Body Text
             Text(
               '“${widget.fact.text}”',
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    fontSize: 21.0,
-                    fontWeight: FontWeight.w500,
-                    fontStyle: FontStyle.italic,
-                    color: primaryTextColor,
-                    height: 1.45,
-                    letterSpacing: -0.2,
-                  ),
+              style: TextStyle(
+                fontFamily: 'Lora',
+                fontSize: 18.0,
+                height: 1.55,
+                color: primaryTextColor,
+                fontWeight: FontWeight.w400,
+              ),
             ),
             const SizedBox(height: GeistSpacing.xl),
 
-            // Footer Actions: Bookmark & Share
-            Row(
-              children: [
-                // Bookmark Action Button
-                Semantics(
-                  button: true,
-                  toggled: _isBookmarked,
-                  label: _isBookmarked ? 'Saved to bookmarks' : 'Save bookmark',
-                  child: InkWell(
-                    onTap: () => _toggleBookmark(context),
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                        decoration: BoxDecoration(
-                          color: _isBookmarked
-                              ? GeistColors.bookmarkActiveBg(isDark)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-                          border: Border.all(
-                            color: _isBookmarked
-                                ? (isDark ? GeistColors.streak : GeistColors.streakLight)
-                                : borderColor,
-                            width: 1.0,
+            // Footer
+            Container(
+              padding: const EdgeInsets.only(top: GeistSpacing.md),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: borderColor, width: 1.0)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Verified Editorial Desk',
+                      style: TextStyle(
+                        fontSize: 11.0,
+                        fontFamily: 'monospace',
+                        color: secondaryTextColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      // Share Button
+                      Semantics(
+                        button: true,
+                        label: 'Share fact',
+                        child: InkWell(
+                          onTap: () => _handleShare(context),
+                          borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 32.0, minWidth: 32.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                                border: Border.all(color: borderColor, width: 1.0),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Share',
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontFamily: 'monospace',
+                                      color: secondaryTextColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Icon(
+                                    Icons.arrow_outward_rounded,
+                                    size: 14.0,
+                                    color: secondaryTextColor,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        child: ExcludeSemantics(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                size: 16.0,
+                      ),
+                      const SizedBox(width: GeistSpacing.sm),
+
+                      // Save to Vault Button
+                      Semantics(
+                        button: true,
+                        toggled: _isBookmarked,
+                        label: _isBookmarked ? 'Saved to bookmarks' : 'Save bookmark',
+                        child: InkWell(
+                          onTap: () => _toggleBookmark(context),
+                          borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 32.0, minWidth: 32.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                              decoration: BoxDecoration(
                                 color: _isBookmarked
-                                    ? (isDark ? GeistColors.streak : GeistColors.streakLight)
-                                    : secondaryTextColor,
-                              ),
-                              const SizedBox(width: 6.0),
-                              Text(
-                                _isBookmarked ? 'Saved' : 'Bookmark',
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w700,
+                                    ? (isDark ? GeistColors.streak.withValues(alpha: 0.2) : GeistColors.streakLight.withValues(alpha: 0.1))
+                                    : (isDark ? const Color(0xFF2C3136) : const Color(0xFFF2EFE9)),
+                                borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                                border: Border.all(
                                   color: _isBookmarked
                                       ? (isDark ? GeistColors.streak : GeistColors.streakLight)
-                                      : secondaryTextColor,
+                                      : Colors.transparent,
+                                  width: 1.0,
                                 ),
                               ),
-                            ],
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                    size: 14.0,
+                                    color: _isBookmarked
+                                        ? (isDark ? GeistColors.streak : GeistColors.streakLight)
+                                        : primaryTextColor,
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Text(
+                                    _isBookmarked ? 'Saved' : 'Save to Vault',
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontFamily: 'monospace',
+                                      color: _isBookmarked
+                                          ? (isDark ? GeistColors.streak : GeistColors.streakLight)
+                                          : primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: GeistSpacing.md),
-
-                // Share Action Button
-                Semantics(
-                  button: true,
-                  label: 'Share fact',
-                  child: InkWell(
-                    onTap: () => _handleShare(context),
-                    borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 48.0, minWidth: 48.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-                          border: Border.all(color: borderColor, width: 1.0),
-                        ),
-                        child: ExcludeSemantics(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.arrow_outward_rounded,
-                                size: 15.0,
-                                color: secondaryTextColor,
-                              ),
-                              const SizedBox(width: 6.0),
-                              Text(
-                                'Share',
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w700,
-                                  color: secondaryTextColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

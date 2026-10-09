@@ -80,7 +80,7 @@ EVERGREEN_COSMOS: List[CosmosItem] = [
             "A celestial landscape of interstellar gas and dust located in the Eagle Nebula, "
             "photographed by the Hubble and James Webb Space Telescopes, where active star formation occurs."
         ),
-        url="https://apod.nasa.gov/apod/image/2210/PillarsOfCreation_Webb_960.jpg",
+        url="https://upload.wikimedia.org/wikipedia/commons/b/b2/Eagle_nebula_pillars.jpg",
     ),
     CosmosItem(
         title="The Andromeda Galaxy",
@@ -88,7 +88,7 @@ EVERGREEN_COSMOS: List[CosmosItem] = [
             "The Andromeda Galaxy (M31) is the nearest major barred spiral galaxy to the Milky Way, "
             "spanning approximately 220,000 light-years across and containing an estimated one trillion stars."
         ),
-        url="https://apod.nasa.gov/apod/image/2108/M31_HubbleSubaruGendler_960.jpg",
+        url="https://images-assets.nasa.gov/image/PIA23645/PIA23645~orig.jpg",
     ),
     CosmosItem(
         title="The Pale Blue Dot",
@@ -96,7 +96,7 @@ EVERGREEN_COSMOS: List[CosmosItem] = [
             "A photograph of planet Earth captured on February 14, 1990, by the Voyager 1 space probe "
             "from a record distance of roughly 6 billion kilometers as part of that mission's Family Portrait series."
         ),
-        url="https://apod.nasa.gov/apod/image/2002/PaleBlueDot_Voyager1_960.jpg",
+        url="https://upload.wikimedia.org/wikipedia/commons/7/73/Pale_Blue_Dot.png",
     ),
 ]
 

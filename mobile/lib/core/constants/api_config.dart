@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 
 /// Centralized configuration for the backend API base URL.
@@ -9,6 +8,7 @@ import 'package:flutter/foundation.dart';
 /// 3. Web dynamic host resolution
 /// 4. Physical device default (LAN IP: 192.168.0.102) / fallback localhost
 class ApiConfig {
+  static const String defaultProductionUrl = 'https://curiosity-backend-90rd.onrender.com';
   static const String _envUrl = String.fromEnvironment('API_URL');
   static String? _customUrl;
 
@@ -36,16 +36,9 @@ class ApiConfig {
       if (uri.host.isNotEmpty && uri.host != 'localhost' && uri.host != '127.0.0.1') {
         return '${uri.scheme}://${uri.host}:8000';
       }
-      return 'http://localhost:8000';
+      return defaultProductionUrl;
     }
 
-    try {
-      if (Platform.isAndroid) {
-        // Default to local Wi-Fi IP so testing on physical device works out of the box
-        return 'http://192.168.0.102:8000';
-      }
-    } catch (_) {}
-
-    return 'http://localhost:8000';
+    return defaultProductionUrl;
   }
 }

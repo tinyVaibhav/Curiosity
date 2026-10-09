@@ -1,3 +1,22 @@
+# Mandatory Planning & Approval Protocol
+
+Before modifying any code, creating files, or executing build/destructive tasks:
+
+1. **Investigate & Diagnose First**:
+   - Inspect files, logs, or error traces in read-only mode to determine the root cause.
+   - Do NOT edit, delete, or create code or configuration files during the diagnosis phase.
+
+2. **Present Findings & Action Plan**:
+   - Clearly explain the root cause and why it occurred.
+   - Outline the exact proposed changes, listing affected files and what each edit will do.
+   - Present alternative approaches or trade-offs if applicable.
+
+3. **Await Explicit Confirmation**:
+   - STOP and wait for the user to approve the plan or choose an approach.
+   - NEVER make direct changes, apply edits, or trigger builds until the user explicitly says to proceed (e.g., "proceed", "go ahead", "implement the change").
+
+---
+
 # Frontend Web Design Guidelines
 
 When creating or modifying frontend UI code in this project, you MUST adhere to the Vercel Web Interface Guidelines.

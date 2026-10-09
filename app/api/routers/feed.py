@@ -11,9 +11,18 @@ router = APIRouter(prefix="/api/v1/feed", tags=["Daily Feed"])
 
 from urllib.parse import quote
 
+COSMOS_URL_REPLACEMENTS: dict[str, str] = {
+    "https://apod.nasa.gov/apod/image/2210/PillarsOfCreation_Webb_960.jpg": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Eagle_nebula_pillars.jpg",
+    "https://apod.nasa.gov/apod/image/2108/M31_HubbleSubaruGendler_960.jpg": "https://images-assets.nasa.gov/image/PIA23645/PIA23645~orig.jpg",
+    "https://apod.nasa.gov/apod/image/2002/PaleBlueDot_Voyager1_960.jpg": "https://upload.wikimedia.org/wikipedia/commons/7/73/Pale_Blue_Dot.png",
+}
+
 
 def _sanitize_pack_image_urls(pack: DailyPackSchema) -> DailyPackSchema:
-    """Passes through clean canonical image URLs so frontend clients resolve platform-specific proxy endpoints dynamically."""
+    """Passes through clean canonical image URLs and upgrades any deprecated upstream endpoints dynamically."""
+    for item in pack.cosmos:
+        if item.url in COSMOS_URL_REPLACEMENTS:
+            item.url = COSMOS_URL_REPLACEMENTS[item.url]
     return pack
 
 
@@ -70,6 +79,9 @@ async def proxy_image(url: str = Query(..., description="Target image URL to pro
     """
     if not (url.startswith("http://") or url.startswith("https://")):
         raise HTTPException(status_code=400, detail="Invalid URL scheme")
+
+    if url in COSMOS_URL_REPLACEMENTS:
+        url = COSMOS_URL_REPLACEMENTS[url]
 
     now = time.time()
     if url in _image_cache:

@@ -27,12 +27,22 @@ class ImageUtils {
       return '$baseUrl/api/v1/feed/proxy-image?url=$rawParam';
     }
 
-    // On Web, proxy external images to guarantee CORS compliance
-    if (kIsWeb || forceProxy) {
-      return '$baseUrl/api/v1/feed/proxy-image?url=${Uri.encodeComponent(trimmed)}';
+    // Remap broken/deprecated apod.nasa.gov endpoints to permanent high-res CDNs
+    String effectiveUrl = trimmed;
+    if (trimmed == 'https://apod.nasa.gov/apod/image/2210/PillarsOfCreation_Webb_960.jpg') {
+      effectiveUrl = 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Eagle_nebula_pillars.jpg';
+    } else if (trimmed == 'https://apod.nasa.gov/apod/image/2108/M31_HubbleSubaruGendler_960.jpg') {
+      effectiveUrl = 'https://images-assets.nasa.gov/image/PIA23645/PIA23645~orig.jpg';
+    } else if (trimmed == 'https://apod.nasa.gov/apod/image/2002/PaleBlueDot_Voyager1_960.jpg') {
+      effectiveUrl = 'https://upload.wikimedia.org/wikipedia/commons/7/73/Pale_Blue_Dot.png';
     }
 
-    return trimmed;
+    // On Web, proxy external images to guarantee CORS compliance
+    if (kIsWeb || forceProxy) {
+      return '$baseUrl/api/v1/feed/proxy-image?url=${Uri.encodeComponent(effectiveUrl)}';
+    }
+
+    return effectiveUrl;
   }
 
   /// Upgrades a Wikimedia thumbnail URL to a higher resolution (e.g. 640px)

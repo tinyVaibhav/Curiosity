@@ -5,6 +5,7 @@ import '../core/models/feed_models.dart';
 import '../core/theme/geist_theme.dart';
 import '../core/utils/image_utils.dart';
 import '../core/utils/text_utils.dart';
+import 'image_viewer_modal.dart';
 
 class ArticleCard extends StatelessWidget {
   final ArticleItem article;
@@ -91,6 +92,16 @@ class ArticleCard extends StatelessWidget {
                                 ),
                               ),
                             ],
+                          )
+                        else
+                          Text(
+                            '7 MIN READ',
+                            style: TextStyle(
+                              fontSize: 10.0,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.w700,
+                              color: secondaryTextColor,
+                            ),
                           ),
                       ],
                     ),
@@ -99,10 +110,29 @@ class ArticleCard extends StatelessWidget {
                     // Title
                     Text(
                       displayTitle,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: primaryTextColor,
-                            height: 1.25,
+                      style: TextStyle(
+                        fontFamily: 'Lora',
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w700,
+                        color: primaryTextColor,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: GeistSpacing.sm),
+
+                    // Byline
+                    Row(
+                      children: [
+                        Text(
+                          'WIKIPEDIA FEATURED • TODAY',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w600,
+                            color: secondaryTextColor,
                           ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: GeistSpacing.sm),
 
@@ -111,26 +141,46 @@ class ArticleCard extends StatelessWidget {
                       article.summary,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: secondaryTextColor,
-                            height: 1.45,
-                          ),
+                      style: TextStyle(
+                        fontSize: 13.0,
+                        color: secondaryTextColor,
+                        height: 1.5,
+                      ),
                     ),
                     const SizedBox(height: GeistSpacing.md),
 
-                    // CTA: Read Full Article ↗
-                    Row(
-                      children: [
-                        Text(
-                          'Read Full Article ↗',
-                          style: TextStyle(
-                            fontSize: 13.0,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? GeistColors.accentTextDark : GeistColors.accentLight,
-                            letterSpacing: -0.2,
+                    // Footer: Read Full Article →
+                    Container(
+                      padding: const EdgeInsets.only(top: GeistSpacing.sm),
+                      decoration: BoxDecoration(
+                        border: Border(top: BorderSide(color: isDark ? const Color(0xFF33383F) : const Color(0xFFEFECE6), width: 1.0)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Estimated completion: 7m',
+                              style: TextStyle(
+                                fontSize: 11.0,
+                                fontFamily: 'monospace',
+                                color: secondaryTextColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: GeistSpacing.sm),
+                          Text(
+                            'Read Full Article →',
+                            style: TextStyle(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? GeistColors.accentTextDark : GeistColors.accentLight,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -258,6 +308,8 @@ class ArticleReaderModal extends StatelessWidget {
     final primaryTextColor = isDark ? GeistColors.darkTextPrimary : GeistColors.lightTextPrimary;
     final secondaryTextColor = isDark ? GeistColors.darkTextSecondary : GeistColors.lightTextSecondary;
     final borderColor = isDark ? GeistColors.darkBorder : GeistColors.lightBorder;
+    final canvasColor = isDark ? const Color(0xFF191C1F) : const Color(0xFFEDE8E1);
+    final scrimColor = isDark ? const Color(0x99191C1F) : const Color(0x99F5F0EB);
 
     final displayTitle = TextUtils.cleanWikiTitle(
       article.normalizedTitle.isNotEmpty ? article.normalizedTitle : article.title,
@@ -297,32 +349,96 @@ class ArticleReaderModal extends StatelessWidget {
                 if (article.thumbnailUrl != null && article.thumbnailUrl!.isNotEmpty) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(GeistSpacing.radiusMd),
-                    child: Container(
-                      constraints: const BoxConstraints(maxHeight: 360.0),
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF191C1F) : const Color(0xFFEDE8E1),
-                      child: ExcludeSemantics(
-                        child: Image.network(
-                          ImageUtils.resolveImageUrl(article.thumbnailUrl!),
-                          fit: BoxFit.contain,
-                          alignment: Alignment.center,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return SizedBox(
-                              height: 180.0,
-                              child: Center(
-                                child: SizedBox(
-                                  width: 24.0,
-                                  height: 24.0,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.0,
-                                    color: secondaryTextColor,
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Material(
+                        color: canvasColor,
+                        child: InkWell(
+                          onTap: () {
+                            ImageViewerModal.show(
+                              context,
+                              imageUrl: article.thumbnailUrl!,
+                              title: displayTitle,
+                              caption: article.summary,
+                            );
+                          },
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Ambient blurred background glow
+                              ClipRect(
+                                child: ImageFiltered(
+                                  imageFilter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0),
+                                  child: Transform.scale(
+                                    scale: 1.25,
+                                    child: Image.network(
+                                      ImageUtils.resolveImageUrl(article.thumbnailUrl!),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                                    ),
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+
+                              // Soft tinted scrim
+                              Container(color: scrimColor),
+
+                              // Foreground uncropped image (zero cropping, 100% visible)
+                              Image.network(
+                                ImageUtils.resolveImageUrl(article.thumbnailUrl!),
+                                fit: BoxFit.contain,
+                                alignment: Alignment.center,
+                                semanticLabel: 'Article photograph: $displayTitle',
+                                loadingBuilder: (context, child, progress) {
+                                  if (progress == null) return child;
+                                  return Center(
+                                    child: SizedBox(
+                                      width: 24.0,
+                                      height: 24.0,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.0,
+                                        color: secondaryTextColor,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                              ),
+
+                              // Tap to zoom affordance pill
+                              Positioned(
+                                right: GeistSpacing.sm,
+                                bottom: GeistSpacing.sm,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(GeistSpacing.radiusSm),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(Icons.fullscreen_rounded, size: 14.0, color: Colors.white),
+                                      SizedBox(width: 4.0),
+                                      Text(
+                                        'Zoom',
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                          letterSpacing: 0.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

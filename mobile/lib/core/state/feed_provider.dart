@@ -308,19 +308,19 @@ class FeedProvider extends ChangeNotifier {
           title: 'The Pillars of Creation',
           explanation:
               'A celestial landscape of interstellar gas and dust located in the Eagle Nebula where active star formation occurs.',
-          url: 'https://apod.nasa.gov/apod/image/2210/PillarsOfCreation_Webb_960.jpg',
+          url: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Eagle_nebula_pillars.jpg',
         ),
         CosmosItem(
           title: 'The Andromeda Galaxy',
           explanation:
               'The nearest major spiral galaxy to the Milky Way, containing roughly one trillion stars.',
-          url: 'https://apod.nasa.gov/apod/image/2108/M31_HubbleSubaruGendler_960.jpg',
+          url: 'https://images-assets.nasa.gov/image/PIA23645/PIA23645~orig.jpg',
         ),
         CosmosItem(
           title: 'The Pale Blue Dot',
           explanation:
               'A photograph of Earth captured from 6 billion kilometers by Voyager 1.',
-          url: 'https://apod.nasa.gov/apod/image/2002/PaleBlueDot_Voyager1_960.jpg',
+          url: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Pale_Blue_Dot.png',
         ),
       ],
       facts: [

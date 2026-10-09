@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#FAF8F5"/>
+  <circle cx="512" cy="512" r="390" fill="none" stroke="#EFE9E0" stroke-width="2"/>
+  
+  <!-- Bold Swiss Question Mark Hook in Deep Pine Sage -->
+  <path d="M 330 380 
+           C 330 250, 410 180, 520 180 
+           C 650 180, 730 260, 730 370 
+           C 730 470, 650 530, 570 580 
+           L 570 635 
+           L 460 635 
+           L 460 550 
+           C 555 495, 620 450, 620 375 
+           C 620 315, 575 270, 515 270 
+           C 455 270, 420 310, 415 380 Z" 
+        fill="#3E6552"/>
+
+  <!-- Four-point Polaris Discovery Spark as the anchor dot in Terracotta Flame -->
+  <path d="M 515 705 
+           Q 515 790 430 790 
+           Q 515 790 515 875 
+           Q 515 790 600 790 
+           Q 515 790 515 705 Z" 
+        fill="#D97757"/>
+  
+  <circle cx="515" cy="790" r="22" fill="#FAF8F5"/>
+</svg>
