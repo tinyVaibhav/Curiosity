@@ -137,3 +137,34 @@ class FeedService:
         stmt = select(DailyPack.pack_date).order_by(DailyPack.pack_date.desc())
         result = await db.execute(stmt)
         return list(result.scalars().all())
+
+    @classmethod
+    async def update_pack_cosmos(
+        cls, target_date: date, fresh_cosmos: List[CosmosItem], db: Optional[AsyncSession] = None
+    ) -> None:
+        """Updates the cosmos items for an existing pack date in DB and Cache."""
+        date_str = target_date.isoformat()
+        cache_key = f"daily_pack:{date_str}"
+        cosmos_dicts = [c.model_dump() for c in fresh_cosmos]
+
+        async def _apply_update(session: AsyncSession) -> None:
+            stmt = select(DailyPack).where(DailyPack.pack_date == target_date)
+            res = await session.execute(stmt)
+            record = res.scalar_one_or_none()
+            if record:
+                record.cosmos_json = cosmos_dicts
+                await session.commit()
+
+        try:
+            if db is not None:
+                await _apply_update(db)
+            elif db_manager.session_maker:
+                async with db_manager.session_maker() as session:
+                    await _apply_update(session)
+
+            cached_data = await cache_manager.get_json(cache_key)
+            if cached_data:
+                cached_data["cosmos"] = cosmos_dicts
+                await cache_manager.set_json(cache_key, cached_data)
+        except Exception as e:
+            logger.warning("Failed to update pack cosmos for %s: %r", date_str, e)

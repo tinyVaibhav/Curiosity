@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.schemas.domain import DailyPackSchema
+from app.services.aggregator import AggregatorService
 from app.services.feed_service import FeedService
 
 router = APIRouter(prefix="/api/v1/feed", tags=["Daily Feed"])
@@ -40,6 +41,18 @@ async def get_today_feed(
     """
     target_date = date or datetime.now(timezone.utc).date()
     pack = await FeedService.get_or_create_daily_pack(target_date=target_date, db=db)
+
+    # Dynamically upgrade stale evergreen fallback cosmos items if present
+    fallback_titles = {"The Pillars of Creation", "The Andromeda Galaxy", "The Pale Blue Dot"}
+    if any(item.title in fallback_titles for item in pack.cosmos):
+        try:
+            fresh_cosmos = await AggregatorService.fetch_cosmos(target_date)
+            if fresh_cosmos and not any(c.title in fallback_titles for c in fresh_cosmos):
+                pack.cosmos = fresh_cosmos
+                await FeedService.update_pack_cosmos(pack.pack_date, fresh_cosmos, db=db)
+        except Exception:
+            pass
+
     return _sanitize_pack_image_urls(pack)
 
 

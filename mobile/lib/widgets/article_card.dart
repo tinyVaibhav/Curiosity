@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/models/feed_models.dart';
 import '../core/theme/geist_theme.dart';
@@ -301,6 +302,31 @@ class ArticleReaderModal extends StatelessWidget {
     );
   }
 
+  Future<void> _launchArticleUrl(BuildContext context) async {
+    HapticFeedback.lightImpact();
+    final url = Uri.parse(TextUtils.formatWikipediaUrl(article.title));
+    try {
+      final launched = await launchUrl(url, mode: LaunchMode.inAppBrowserView);
+      if (launched) return;
+    } catch (_) {}
+
+    try {
+      final extLaunched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (extLaunched) return;
+    } catch (_) {}
+
+    try {
+      final defaultLaunched = await launchUrl(url, mode: LaunchMode.platformDefault);
+      if (defaultLaunched) return;
+    } catch (_) {}
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open article in browser')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -505,12 +531,7 @@ class ArticleReaderModal extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(TextUtils.formatWikipediaUrl(article.title));
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.inAppBrowserView);
-                      }
-                    },
+                    onPressed: () => _launchArticleUrl(context),
                     icon: const Icon(Icons.open_in_browser_rounded, size: 18.0),
                     label: const Text(
                       'Open Full Wikipedia Article ↗',

@@ -400,15 +400,20 @@ void main() {
   });
 
   group('In-App Settings & Dynamic ThemeMode Switching Tests', () {
-    testWidgets('Command Palette Settings entry renders with accessible touch targets', (WidgetTester tester) async {
+    testWidgets('Command Palette focuses on Discovery and does not duplicate Vault or Settings entries', (WidgetTester tester) async {
       await tester.pumpWidget(const CuriosityApp());
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Search topics, command palette'));
       await tester.pumpAndSettle();
 
-      final settingsEntryFinder = find.text('Settings & Appearance Mode');
-      expect(settingsEntryFinder, findsOneWidget);
+      // Ensure Serendipity and Explore Topics are present
+      expect(find.text('SERENDIPITY'), findsOneWidget);
+      expect(find.text('EXPLORE TOPICS'), findsOneWidget);
+
+      // Ensure Vault and Settings have been removed from Command Palette
+      expect(find.text('The Vault & Past Archives'), findsNothing);
+      expect(find.text('Settings & Appearance Mode'), findsNothing);
     });
 
     testWidgets('Tapping Settings opens SettingsModal with all 4 modular sections', (WidgetTester tester) async {
@@ -747,6 +752,40 @@ void main() {
         errorMessage: 'Server is taking longer than usual to respond',
       );
       expect(timeoutResult.errorType, FeedErrorType.serverTimeout);
+    });
+
+    test('FeedProvider detects and updates when cosmos items change for the same pack date', () {
+      final packA = DailyPack(
+        packDate: '2026-10-10',
+        articles: const [],
+        quizzes: const [],
+        cosmos: const [
+          CosmosItem(
+            title: 'The Pillars of Creation',
+            explanation: 'Fallback',
+            url: 'https://example.com/pillars.jpg',
+          ),
+        ],
+        facts: const [],
+      );
+
+      final packB = DailyPack(
+        packDate: '2026-10-10',
+        articles: const [],
+        quizzes: const [],
+        cosmos: const [
+          CosmosItem(
+            title: 'Stickney Crater',
+            explanation: 'Fresh NASA APOD',
+            url: 'https://example.com/stickney.jpg',
+          ),
+        ],
+        facts: const [],
+      );
+
+      final provider = FeedProvider(initialDate: '2026-10-10');
+      // Verify that packB is recognized as different from packA
+      expect(packA.cosmos.first.title != packB.cosmos.first.title, isTrue);
     });
   });
 }

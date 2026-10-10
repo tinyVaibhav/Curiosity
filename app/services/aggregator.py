@@ -3,6 +3,7 @@ from datetime import date, timedelta
 import html
 import logging
 import random
+import re
 from typing import List, Optional
 
 from app.core.config import settings
@@ -258,69 +259,79 @@ class AggregatorService:
         return quizzes[:3]
 
     @classmethod
-    async def fetch_cosmos(cls) -> List[CosmosItem]:
+    async def fetch_cosmos(cls, target_date: Optional[date] = None) -> List[CosmosItem]:
         """
-        Fetch 3 astronomy items from NASA's Astronomy Picture of the Day (APOD) API.
-        Triggers two parallel calls:
-        1. Today's APOD
-        2. 2 Random APODs (count=2)
+        Fetch 3 astronomy items from NASA's official Astronomy Picture of the Day (APOD) API.
+        Primary source: NASA's official WordPress REST endpoint (https://science.nasa.gov/wp-json/wp/v2/apod-basic).
+        Secondary source: Legacy api.nasa.gov endpoint.
+        Tertiary fallback: Curated EVERGREEN_COSMOS items.
         """
         client = get_http_client()
-        api_key = getattr(settings, "NASA_API_KEY", "DEMO_KEY")
-        base_url = "https://api.nasa.gov/planetary/apod"
-
-        async def _fetch_today_apod() -> Optional[CosmosItem]:
-            try:
-                response = await client.get(f"{base_url}?api_key={api_key}")
-                if response.status_code == 200:
-                    data = response.json()
-                    title = data.get("title")
-                    explanation = data.get("explanation")
-                    url = data.get("url") or data.get("hdurl")
-                    if title and explanation and url:
-                        return CosmosItem(title=title, explanation=explanation, url=url)
-                else:
-                    logger.warning("NASA APOD today call returned status %s", response.status_code)
-            except Exception as exc:
-                logger.warning("Error fetching NASA APOD today: %r", exc)
-            return None
-
-        async def _fetch_random_apods() -> List[CosmosItem]:
-            items: List[CosmosItem] = []
-            try:
-                response = await client.get(f"{base_url}?api_key={api_key}&count=2")
-                if response.status_code == 200:
-                    data = response.json()
-                    if isinstance(data, list):
-                        for entry in data:
-                            title = entry.get("title")
-                            explanation = entry.get("explanation")
-                            url = entry.get("url") or entry.get("hdurl")
-                            if title and explanation and url:
-                                items.append(CosmosItem(title=title, explanation=explanation, url=url))
-                else:
-                    logger.warning("NASA APOD random call returned status %s", response.status_code)
-            except Exception as exc:
-                logger.warning("Error fetching NASA APOD random: %r", exc)
-            return items
-
-        results = await asyncio.gather(_fetch_today_apod(), _fetch_random_apods(), return_exceptions=True)
-
         cosmos: List[CosmosItem] = []
-        today_apod = results[0]
-        if isinstance(today_apod, CosmosItem):
-            cosmos.append(today_apod)
+        target_iso = (target_date or date.today()).isoformat()
 
-        random_apods = results[1]
-        if isinstance(random_apods, list):
-            for item in random_apods:
-                if isinstance(item, CosmosItem) and not any(c.title == item.title for c in cosmos):
-                    cosmos.append(item)
+        # 1. Primary: Official NASA APOD WP-JSON endpoint (no API key needed, zero rate limits)
+        try:
+            response = await client.get("https://science.nasa.gov/wp-json/wp/v2/apod-basic?per_page=12")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    # Filter for entries on or before target date
+                    dated_entries = [e for e in data if isinstance(e, dict) and e.get("date", "") <= target_iso]
+                    if not dated_entries:
+                        dated_entries = [e for e in data if isinstance(e, dict)]
 
-        # Backfill if NASA failed, rate-limited, or returned fewer than 3 items
+                    for entry in dated_entries:
+                        title_raw = entry.get("title", "")
+                        title = html.unescape(title_raw).strip()
+                        raw_explanation = entry.get("explanation", "")
+                        # Strip HTML tags like <strong>, <a ...>, etc.
+                        clean_expl = re.sub(r"<[^>]+>", "", raw_explanation)
+                        clean_expl = re.sub(r"^\s*Explanation:\s*", "", clean_expl, flags=re.IGNORECASE)
+                        clean_expl = " ".join(html.unescape(clean_expl).split())
+
+                        img_url = entry.get("hdurl") or entry.get("url")
+                        if (
+                            title
+                            and clean_expl
+                            and img_url
+                            and any(ext in img_url.lower() for ext in [".jpg", ".png", ".jpeg", ".webp"])
+                        ):
+                            if not any(c.title.lower() == title.lower() for c in cosmos):
+                                cosmos.append(CosmosItem(title=title, explanation=clean_expl, url=img_url))
+
+                        if len(cosmos) >= 3:
+                            break
+        except Exception as exc:
+            logger.warning("Error fetching official NASA APOD endpoint: %r", exc)
+
+        # 2. Secondary fallback: Legacy api.nasa.gov endpoint if fewer than 3 items
+        if len(cosmos) < 3:
+            api_key = getattr(settings, "NASA_API_KEY", "DEMO_KEY")
+            base_url = "https://api.nasa.gov/planetary/apod"
+
+            async def _fetch_today_apod() -> Optional[CosmosItem]:
+                try:
+                    res = await client.get(f"{base_url}?api_key={api_key}&date={target_iso}")
+                    if res.status_code != 200:
+                        res = await client.get(f"{base_url}?api_key={api_key}")
+                    if res.status_code == 200:
+                        d = res.json()
+                        t, e, u = d.get("title"), d.get("explanation"), d.get("url") or d.get("hdurl")
+                        if t and e and u:
+                            return CosmosItem(title=t, explanation=e, url=u)
+                except Exception as exc:
+                    logger.debug("Legacy NASA APOD call failed: %r", exc)
+                return None
+
+            today_legacy = await _fetch_today_apod()
+            if today_legacy and not any(c.title.lower() == today_legacy.title.lower() for c in cosmos):
+                cosmos.append(today_legacy)
+
+        # 3. Tertiary fallback: Backfill with EVERGREEN_COSMOS if still fewer than 3 items
         if len(cosmos) < 3:
             for fallback in EVERGREEN_COSMOS:
-                if not any(c.title == fallback.title for c in cosmos):
+                if not any(c.title.lower() == fallback.title.lower() for c in cosmos):
                     cosmos.append(fallback)
                 if len(cosmos) == 3:
                     break
@@ -465,7 +476,7 @@ class AggregatorService:
         articles_res, quizzes_res, cosmos_res, facts_res = await asyncio.gather(
             cls.fetch_articles(d),
             cls.fetch_quizzes(),
-            cls.fetch_cosmos(),
+            cls.fetch_cosmos(d),
             cls.fetch_facts(d),
             return_exceptions=True,
         )

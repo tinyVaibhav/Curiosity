@@ -136,9 +136,22 @@ class FeedProvider extends ChangeNotifier {
 
   bool _hasPackChanged(DailyPack a, DailyPack b) {
     if (a.packDate != b.packDate) return true;
+    if (a.id != b.id) return true;
     if (a.articles.length != b.articles.length) return true;
     for (int i = 0; i < a.articles.length; i++) {
       if (a.articles[i].title != b.articles[i].title) return true;
+    }
+    if (a.cosmos.length != b.cosmos.length) return true;
+    for (int i = 0; i < a.cosmos.length; i++) {
+      if (a.cosmos[i].title != b.cosmos[i].title || a.cosmos[i].url != b.cosmos[i].url) return true;
+    }
+    if (a.quizzes.length != b.quizzes.length) return true;
+    for (int i = 0; i < a.quizzes.length; i++) {
+      if (a.quizzes[i].question != b.quizzes[i].question) return true;
+    }
+    if (a.facts.length != b.facts.length) return true;
+    for (int i = 0; i < a.facts.length; i++) {
+      if (a.facts[i].text != b.facts[i].text) return true;
     }
     return false;
   }
